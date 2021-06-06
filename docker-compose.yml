@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  db:
+    image: mysql
+    environment:
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - ./data:/var/lib/mysql
+    ports:
+      - "3306:3306"
