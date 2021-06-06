@@ -1,11 +1,9 @@
-import { ShoppingListRepository } from "../ShoppingList/ShoppingListRepository";
-import { ShoppingListService } from "../ShoppingList/ShoppingListService";
-import { DBService } from "../data/dbService";
+import { shoppingListModules } from "./../ShoppingList/modules/ShoppingListModules";
 import { Container } from "inversify";
-import { TYPES } from "./types";
+
+import { DBService } from "../data/dbService";
 
 export const container = new Container();
 
 container.bind(DBService).toSelf().inSingletonScope();
-container.bind<ShoppingListRepository>(TYPES.IShoppingListRepository).to(ShoppingListRepository);
-container.bind<ShoppingListService>(TYPES.IShoppingListService).to(ShoppingListService);
+container.load(shoppingListModules);

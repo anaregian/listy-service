@@ -1,10 +1,13 @@
+import { ResponseResult } from "./../common/responseResult";
+import { ServiceSuccessResult } from "./../common/serviceResult";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
 import { Request, Response } from "express";
 
 import { IShoppingListService } from "./ShoppingListService";
 import { inject } from "inversify";
-import { TYPES } from "../modules/types";
 import { ShoppingListDto } from "./dto/shoppingListDto";
+import { TYPES } from "../modules/types";
+import { ShoppingList } from ".prisma/client";
 
 @controller("/api/shoppingLists")
 export class ShoppingListController {
@@ -15,49 +18,79 @@ export class ShoppingListController {
   }
 
   @httpGet("/")
-  async getAll(_: Request, res: Response) {
-    const shoppingLists = await this.shoppingListService.getAll();
+  async index(_: Request, res: Response<ResponseResult<ShoppingList[]>>) {
+    const result = await this.shoppingListService.getAll();
 
-    res.json({ data: shoppingLists });
+    if (!result.success) {
+      res.status(400);
+      return res.json({ error: result });
+    }
+
+    const successResult = result as ServiceSuccessResult<ShoppingList[]>;
+    return res.json({ data: successResult.data });
   }
 
   @httpGet("/:id")
-  async show(req: Request, res: Response) {
+  async show(req: Request, res: Response<ResponseResult<ShoppingList>>) {
     const id = parseInt(req.params.id);
-    const shoppingList = await this.shoppingListService.get(id);
+    const result = await this.shoppingListService.get(id);
 
-    res.json({ data: shoppingList });
+    if (!result.success) {
+      res.status(400);
+      return res.json({ error: result });
+    }
+
+    const successResult = result as ServiceSuccessResult<ShoppingList>;
+    return res.json({ data: successResult.data });
   }
 
   @httpPost("/")
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response<ResponseResult<ShoppingList>>) {
     const data: ShoppingListDto = {
       name: req.body.name
     };
 
-    const shoppingList = await this.shoppingListService.create(data);
+    const result = await this.shoppingListService.create(data);
 
-    res.json({ data: shoppingList });
+    if (!result.success) {
+      res.status(400);
+      return res.json({ error: result });
+    }
+
+    const successResult = result as ServiceSuccessResult<ShoppingList>;
+    return res.json({ data: successResult.data });
   }
 
   @httpPut("/:id")
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response<ResponseResult<ShoppingList>>) {
     const id = parseInt(req.params.id);
     const data: ShoppingListDto = {
       name: req.body.name
     };
 
-    const shoppingList = await this.shoppingListService.update(id, data);
+    const result = await this.shoppingListService.update(id, data);
 
-    res.json({ data: shoppingList });
+    if (!result.success) {
+      res.status(400);
+      return res.json({ error: result });
+    }
+
+    const successResult = result as ServiceSuccessResult<ShoppingList>;
+    return res.json({ data: successResult.data });
   }
 
   @httpDelete("/:id")
-  async delete(req: Request, res: Response) {
+  async delete(req: Request, res: Response<ResponseResult<ShoppingList>>) {
     const id = parseInt(req.params.id);
 
-    const shoppingList = await this.shoppingListService.delete(id);
+    const result = await this.shoppingListService.delete(id);
 
-    res.json({ data: shoppingList });
+    if (!result.success) {
+      res.status(400);
+      return res.json({ error: result });
+    }
+
+    const successResult = result as ServiceSuccessResult<ShoppingList>;
+    return res.json({ data: successResult.data });
   }
 }

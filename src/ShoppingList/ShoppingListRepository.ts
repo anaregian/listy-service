@@ -1,38 +1,81 @@
-import { ShoppingList } from ".prisma/client";
+import { Prisma, ShoppingList } from ".prisma/client";
 import { injectable } from "inversify";
 
+import { ServiceResult } from "./../common/ServiceResult";
+import { ErrorCodes } from "./../common/errorCodes";
 import { DBService } from "./../data/dbService";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 
 export interface IShoppingListRepository {
-  getAll: () => Promise<ShoppingList[]>;
-  get: (id: number) => Promise<ShoppingList | null>;
-  create: (data: ShoppingListDto) => Promise<ShoppingList>;
-  update: (id: number, data: ShoppingListDto) => Promise<ShoppingList>;
-  delete: (id: number) => Promise<ShoppingList>;
+  getAll: () => Promise<ServiceResult<ShoppingList[]>>;
+  get: (id: number) => Promise<ServiceResult<ShoppingList>>;
+  create: (data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
+  update: (id: number, data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
+  delete: (id: number) => Promise<ServiceResult<ShoppingList>>;
 }
 
 @injectable()
 export class ShoppingListRepository implements IShoppingListRepository {
   constructor(private readonly db: DBService) {}
 
-  async getAll() {
-    return await this.db.shoppingList.findMany();
+  async getAll(): Promise<ServiceResult<ShoppingList[]>> {
+    const shoppingLists = await this.db.shoppingList.findMany();
+    return { success: true, data: shoppingLists };
   }
 
-  async get(id: number) {
-    return await this.db.shoppingList.findFirst({ where: { id } });
+  async get(id: number): Promise<ServiceResult<ShoppingList>> {
+    const shoppingList = await this.db.shoppingList.findFirst({ where: { id } });
+
+    if (shoppingList == null) {
+      return { success: false, message: "Shopping list does not exist" };
+    }
+
+    return { success: true, data: shoppingList };
   }
 
-  async create(data: ShoppingListDto) {
-    return await this.db.shoppingList.create({ data });
+  async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
+    try {
+      const shoppingList = await this.db.shoppingList.create({ data });
+      return { success: true, data: shoppingList };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === ErrorCodes.UniqueConstraintViolation) {
+          return { success: false, attribute: "name", message: "Name already exists" };
+        }
+      }
+
+      return { success: false, message: "Unexpected error" };
+    }
   }
 
-  async update(id: number, data: ShoppingListDto) {
-    return await this.db.shoppingList.update({ where: { id }, data });
+  async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
+    try {
+      const shoppingList = await this.db.shoppingList.update({ where: { id }, data });
+      return { success: true, data: shoppingList };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === ErrorCodes.RecordNotFound) {
+          return { success: false, message: "Shopping list not found" };
+        }
+        if (e.code === ErrorCodes.UniqueConstraintViolation) {
+          return { success: false, attribute: "name", message: "Name already exists" };
+        }
+      }
+    }
+    return { success: false, message: "Unexpected error" };
   }
 
-  async delete(id: number) {
-    return await this.db.shoppingList.delete({ where: { id } });
+  async delete(id: number): Promise<ServiceResult<ShoppingList>> {
+    try {
+      const shoppingList = await this.db.shoppingList.delete({ where: { id } });
+      return { success: true, data: shoppingList };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        if (e.code === ErrorCodes.RecordNotFound) {
+          return { success: false, message: "Shopping list not found" };
+        }
+      }
+      return { success: false, message: "Unexpected error" };
+    }
   }
 }
