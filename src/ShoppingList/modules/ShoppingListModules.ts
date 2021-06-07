@@ -1,8 +1,8 @@
 import { TYPES } from "../../modules/types";
 import { ContainerModule } from "inversify";
-import { ShoppingListRepository } from "../ShoppingListRepository";
-import { ShoppingListService } from "../ShoppingListService";
-import { ShoppingListValidator } from "../ShoppingListValidator";
+import { ShoppingListRepository } from "../shoppingListRepository";
+import { ShoppingListService } from "../shoppingListService";
+import { ShoppingListValidator } from "../shoppingListValidator";
 
 export const shoppingListModules = new ContainerModule(bind => {
   bind<ShoppingListRepository>(TYPES.IShoppingListRepository).to(ShoppingListRepository);

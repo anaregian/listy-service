@@ -1,4 +1,4 @@
-import { shoppingListModules } from "./../ShoppingList/modules/ShoppingListModules";
+import { shoppingListModules } from "../ShoppingList/modules/shoppingListModules";
 import { Container } from "inversify";
 
 import { DBService } from "../persistency/dbService";

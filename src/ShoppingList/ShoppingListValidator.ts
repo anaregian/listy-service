@@ -1,5 +1,5 @@
 import { injectable } from "inversify";
-import { ValidationResult } from "./../common/validationResult";
+import { ValidationResult } from "../common/validationResult";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 
 export interface IShoppingListValidator {

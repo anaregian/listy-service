@@ -1,9 +1,9 @@
-import { ResponseResult } from "./../common/responseResult";
-import { ServiceSuccessResult } from "./../common/serviceResult";
+import { ResponseResult } from "../common/responseResult";
+import { ServiceSuccessResult } from "../common/serviceResult";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
 import { Request, Response } from "express";
 
-import { IShoppingListService } from "./ShoppingListService";
+import { IShoppingListService } from "./shoppingListService";
 import { inject } from "inversify";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 import { TYPES } from "../modules/types";
@@ -11,7 +11,7 @@ import { ShoppingList } from ".prisma/client";
 
 @controller("/api/shoppingLists")
 export class ShoppingListController {
-  private shoppingListService: IShoppingListService;
+  shoppingListService: IShoppingListService;
 
   constructor(@inject(TYPES.IShoppingListService) shoppingListService: IShoppingListService) {
     this.shoppingListService = shoppingListService;

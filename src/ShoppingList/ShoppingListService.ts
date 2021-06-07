@@ -1,16 +1,16 @@
-import { ValidationErrorResult } from "./../common/validationResult";
-import { ServiceResult, ServiceSuccessResult } from "./../common/serviceResult";
+import { ValidationErrorResult } from "../common/validationResult";
+import { ServiceResult, ServiceSuccessResult } from "../common/serviceResult";
 import { inject, injectable } from "inversify";
 import { ShoppingList } from ".prisma/client";
 
-import { IShoppingListRepository } from "./ShoppingListRepository";
+import { IShoppingListRepository } from "./shoppingListRepository";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 import { TYPES } from "../modules/types";
-import { IShoppingListValidator } from "./ShoppingListValidator";
+import { IShoppingListValidator } from "./shoppingListValidator";
 
 export interface IShoppingListService {
   getAll: () => Promise<ServiceResult<ShoppingList[]>>;
-  get: (id: number) => Promise<ServiceResult<ShoppingList | null>>;
+  get: (id: number) => Promise<ServiceResult<ShoppingList>>;
   create: (data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
   update: (id: number, data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
   delete: (id: number) => Promise<ServiceResult<ShoppingList>>;
@@ -18,8 +18,8 @@ export interface IShoppingListService {
 
 @injectable()
 export class ShoppingListService implements IShoppingListService {
-  private shoppingListRepository: IShoppingListRepository;
-  private shoppingListValidator: IShoppingListValidator;
+  shoppingListRepository: IShoppingListRepository;
+  shoppingListValidator: IShoppingListValidator;
 
   constructor(
     @inject(TYPES.IShoppingListRepository) shoppingListRepository: IShoppingListRepository,
@@ -40,7 +40,7 @@ export class ShoppingListService implements IShoppingListService {
     const successResult = result as ServiceSuccessResult<ShoppingList[]>;
     return { success: true, data: successResult.data };
   }
-  async get(id: number): Promise<ServiceResult<ShoppingList | null>> {
+  async get(id: number): Promise<ServiceResult<ShoppingList>> {
     const result = await this.shoppingListRepository.get(id);
 
     if (!result.success) {

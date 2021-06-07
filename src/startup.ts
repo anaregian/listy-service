@@ -1,9 +1,7 @@
 import "reflect-metadata";
 import "dotenv/config";
-import { Service } from "./app";
+import { App } from "./app";
 
-import "./ShoppingList/ShoppingListController";
+import "./ShoppingList/shoppingListController";
 
-(() => {
-  new Service().init();
-})();
+new App().init();

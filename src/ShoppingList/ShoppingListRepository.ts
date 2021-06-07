@@ -1,8 +1,8 @@
 import { Prisma, ShoppingList } from ".prisma/client";
 import { injectable } from "inversify";
 
-import { ServiceResult } from "./../common/ServiceResult";
-import { ErrorCodes } from "./../common/errorCodes";
+import { ServiceResult } from "../common/ServiceResult";
+import { ErrorCodes } from "../common/errorCodes";
 import { DBService } from "../persistency/dbService";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 

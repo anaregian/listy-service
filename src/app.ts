@@ -3,11 +3,11 @@ import { InversifyExpressServer } from "inversify-express-utils";
 
 import { container } from "./modules/container";
 
-interface IService {
+interface IApp {
   init: () => void | Promise<void>;
 }
 
-export class Service implements IService {
+export class App implements IApp {
   init() {
     const server = new InversifyExpressServer(container);
 
