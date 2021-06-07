@@ -1,21 +1,13 @@
 import { Prisma, ShoppingList } from ".prisma/client";
 import { injectable } from "inversify";
-
-import { ServiceResult, success, error } from "../common/ServiceResult";
 import { ErrorCodes } from "../common/errorCodes";
+import { error, ServiceResult, success } from "../common/ServiceResult";
 import { DBService } from "../persistency/dbService";
-import { ShoppingListDto } from "./dto/shoppingListDto";
-
-export interface IShoppingListRepository {
-  getAll: () => Promise<ServiceResult<ShoppingList[]>>;
-  get: (id: number) => Promise<ServiceResult<ShoppingList>>;
-  create: (data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
-  update: (id: number, data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
-  delete: (id: number) => Promise<ServiceResult<ShoppingList>>;
-}
+import { IRepository } from "./../common/repository";
+import { ShoppingListDto } from "./shoppingListDto";
 
 @injectable()
-export class ShoppingListRepository implements IShoppingListRepository {
+export class ShoppingListRepository implements IRepository<ShoppingList, ShoppingListDto> {
   constructor(private readonly db: DBService) {}
 
   async getAll(): Promise<ServiceResult<ShoppingList[]>> {
@@ -40,7 +32,7 @@ export class ShoppingListRepository implements IShoppingListRepository {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Name already exists");
+          return error("name", "Shopping list already exists");
         }
       }
 
@@ -58,7 +50,7 @@ export class ShoppingListRepository implements IShoppingListRepository {
           return error("", "Shopping list not found");
         }
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return { success: false, attribute: "name", message: "Name already exists" };
+          return { success: false, attribute: "name", message: "Shopping list already exists" };
         }
       }
     }

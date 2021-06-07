@@ -12,4 +12,8 @@ export class DBService {
   get shoppingList() {
     return this.db.shoppingList;
   }
+
+  get item() {
+    return this.db.item;
+  }
 }

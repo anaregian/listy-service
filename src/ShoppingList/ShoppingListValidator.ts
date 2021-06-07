@@ -1,14 +1,10 @@
 import { injectable } from "inversify";
-
-import { ValidationResult, validationError, validationSuccess } from "../common/validationResult";
-import { ShoppingListDto } from "./dto/shoppingListDto";
-
-export interface IShoppingListValidator {
-  validate: (data: ShoppingListDto) => ValidationResult;
-}
+import { validationError, ValidationResult, validationSuccess } from "../common/validationResult";
+import { IValidator } from "../common/validator";
+import { ShoppingListDto } from "./shoppingListDto";
 
 @injectable()
-export class ShoppingListValidator implements IShoppingListValidator {
+export class ShoppingListValidator implements IValidator<ShoppingListDto> {
   validate(data: ShoppingListDto): ValidationResult {
     if (!data.name) {
       return validationError("name", "The shopping list name cannot be empty");

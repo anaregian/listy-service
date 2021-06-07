@@ -1,6 +1,5 @@
 import express from "express";
 import { InversifyExpressServer } from "inversify-express-utils";
-
 import { container } from "./modules/container";
 
 interface IApp {

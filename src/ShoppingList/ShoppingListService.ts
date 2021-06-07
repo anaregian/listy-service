@@ -1,29 +1,20 @@
-import { ValidationErrorResult } from "../common/validationResult";
-import { ServiceResult, ServiceSuccessResult, success } from "../common/serviceResult";
-import { inject, injectable } from "inversify";
 import { ShoppingList } from ".prisma/client";
-
-import { IShoppingListRepository } from "./shoppingListRepository";
-import { ShoppingListDto } from "./dto/shoppingListDto";
+import { inject, injectable } from "inversify";
+import { ServiceResult, success } from "../common/serviceResult";
+import { IValidator } from "../common/validator";
 import { TYPES } from "../modules/types";
-import { IShoppingListValidator } from "./shoppingListValidator";
-
-export interface IShoppingListService {
-  getAll: () => Promise<ServiceResult<ShoppingList[]>>;
-  get: (id: number) => Promise<ServiceResult<ShoppingList>>;
-  create: (data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
-  update: (id: number, data: ShoppingListDto) => Promise<ServiceResult<ShoppingList>>;
-  delete: (id: number) => Promise<ServiceResult<ShoppingList>>;
-}
+import { IRepository } from "./../common/repository";
+import { IService } from "./../common/service";
+import { ShoppingListDto } from "./shoppingListDto";
 
 @injectable()
-export class ShoppingListService implements IShoppingListService {
-  shoppingListRepository: IShoppingListRepository;
-  shoppingListValidator: IShoppingListValidator;
+export class ShoppingListService implements IService<ShoppingList, ShoppingListDto> {
+  shoppingListRepository: IRepository<ShoppingList, ShoppingListDto>;
+  shoppingListValidator: IValidator<ShoppingListDto>;
 
   constructor(
-    @inject(TYPES.IShoppingListRepository) shoppingListRepository: IShoppingListRepository,
-    @inject(TYPES.IShoppingListValidator) shoppingListValidator: IShoppingListValidator
+    @inject(TYPES.IShoppingListRepository) shoppingListRepository: IRepository<ShoppingList, ShoppingListDto>,
+    @inject(TYPES.IShoppingListValidator) shoppingListValidator: IValidator<ShoppingListDto>
   ) {
     this.shoppingListRepository = shoppingListRepository;
     this.shoppingListValidator = shoppingListValidator;
@@ -33,23 +24,19 @@ export class ShoppingListService implements IShoppingListService {
     const result = await this.shoppingListRepository.getAll();
 
     if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
+      return result;
     }
 
-    const successResult = result as ServiceSuccessResult<ShoppingList[]>;
-    return success(successResult.data);
+    return success(result.data);
   }
   async get(id: number): Promise<ServiceResult<ShoppingList>> {
     const result = await this.shoppingListRepository.get(id);
 
     if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
+      return result;
     }
 
-    const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return success(successResult.data);
+    return success(result.data);
   }
 
   async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
@@ -62,12 +49,10 @@ export class ShoppingListService implements IShoppingListService {
     const result = await this.shoppingListRepository.create(data);
 
     if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
+      return result;
     }
 
-    const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return success(successResult.data);
+    return success(result.data);
   }
 
   async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
@@ -80,23 +65,19 @@ export class ShoppingListService implements IShoppingListService {
     const result = await this.shoppingListRepository.update(id, data);
 
     if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
+      return result;
     }
 
-    const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return success(successResult.data);
+    return success(result.data);
   }
 
   async delete(id: number): Promise<ServiceResult<ShoppingList>> {
     const result = await this.shoppingListRepository.delete(id);
 
     if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
+      return result;
     }
 
-    const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return success(successResult.data);
+    return success(result.data);
   }
 }

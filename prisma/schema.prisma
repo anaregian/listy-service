@@ -16,3 +16,10 @@ model ShoppingList {
   updatedAt DateTime @updatedAt
   name      String   @unique @db.VarChar(255)
 }
+
+model Item {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String   @unique @db.VarChar(255)
+}
