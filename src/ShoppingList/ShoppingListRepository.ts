@@ -3,7 +3,7 @@ import { injectable } from "inversify";
 
 import { ServiceResult } from "./../common/ServiceResult";
 import { ErrorCodes } from "./../common/errorCodes";
-import { DBService } from "./../data/dbService";
+import { DBService } from "../persistency/dbService";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 
 export interface IShoppingListRepository {

@@ -1,7 +1,7 @@
 import { shoppingListModules } from "./../ShoppingList/modules/ShoppingListModules";
 import { Container } from "inversify";
 
-import { DBService } from "../data/dbService";
+import { DBService } from "../persistency/dbService";
 
 export const container = new Container();
 
