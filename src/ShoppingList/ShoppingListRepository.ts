@@ -1,7 +1,7 @@
 import { Prisma, ShoppingList } from ".prisma/client";
 import { injectable } from "inversify";
 
-import { ServiceResult } from "../common/ServiceResult";
+import { ServiceResult, success, error } from "../common/ServiceResult";
 import { ErrorCodes } from "../common/errorCodes";
 import { DBService } from "../persistency/dbService";
 import { ShoppingListDto } from "./dto/shoppingListDto";
@@ -20,62 +20,62 @@ export class ShoppingListRepository implements IShoppingListRepository {
 
   async getAll(): Promise<ServiceResult<ShoppingList[]>> {
     const shoppingLists = await this.db.shoppingList.findMany();
-    return { success: true, data: shoppingLists };
+    return success(shoppingLists);
   }
 
   async get(id: number): Promise<ServiceResult<ShoppingList>> {
     const shoppingList = await this.db.shoppingList.findFirst({ where: { id } });
 
     if (shoppingList == null) {
-      return { success: false, message: "Shopping list does not exist" };
+      return error("", "Shopping list does not exist");
     }
 
-    return { success: true, data: shoppingList };
+    return success(shoppingList);
   }
 
   async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
     try {
       const shoppingList = await this.db.shoppingList.create({ data });
-      return { success: true, data: shoppingList };
+      return success(shoppingList);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return { success: false, attribute: "name", message: "Name already exists" };
+          return error("name", "Name already exists");
         }
       }
 
-      return { success: false, message: "Unexpected error" };
+      return error("", "Unexpected error");
     }
   }
 
   async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
     try {
       const shoppingList = await this.db.shoppingList.update({ where: { id }, data });
-      return { success: true, data: shoppingList };
+      return success(shoppingList);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.RecordNotFound) {
-          return { success: false, message: "Shopping list not found" };
+          return error("", "Shopping list not found");
         }
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
           return { success: false, attribute: "name", message: "Name already exists" };
         }
       }
     }
-    return { success: false, message: "Unexpected error" };
+    return error("", "Unexpected error");
   }
 
   async delete(id: number): Promise<ServiceResult<ShoppingList>> {
     try {
       const shoppingList = await this.db.shoppingList.delete({ where: { id } });
-      return { success: true, data: shoppingList };
+      return success(shoppingList);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.RecordNotFound) {
-          return { success: false, message: "Shopping list not found" };
+          return error("", "Shopping list not found");
         }
       }
-      return { success: false, message: "Unexpected error" };
+      return error("", "Unexpected error");
     }
   }
 }

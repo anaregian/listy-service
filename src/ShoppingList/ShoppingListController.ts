@@ -1,13 +1,13 @@
-import { ResponseResult } from "../common/responseResult";
-import { ServiceSuccessResult } from "../common/serviceResult";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
 import { Request, Response } from "express";
-
-import { IShoppingListService } from "./shoppingListService";
 import { inject } from "inversify";
+import { ShoppingList } from ".prisma/client";
+
+import { ResponseResult, successResponse, errorResponse } from "../common/responseResult";
+import { ServiceSuccessResult } from "../common/serviceResult";
+import { IShoppingListService } from "./shoppingListService";
 import { ShoppingListDto } from "./dto/shoppingListDto";
 import { TYPES } from "../modules/types";
-import { ShoppingList } from ".prisma/client";
 
 @controller("/api/shoppingLists")
 export class ShoppingListController {
@@ -23,11 +23,11 @@ export class ShoppingListController {
 
     if (!result.success) {
       res.status(400);
-      return res.json({ error: result });
+      return res.json(errorResponse(result));
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList[]>;
-    return res.json({ data: successResult.data });
+    return res.json(successResponse(successResult.data));
   }
 
   @httpGet("/:id")
@@ -37,11 +37,11 @@ export class ShoppingListController {
 
     if (!result.success) {
       res.status(400);
-      return res.json({ error: result });
+      return res.json(errorResponse(result));
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return res.json({ data: successResult.data });
+    return res.json(successResponse(successResult.data));
   }
 
   @httpPost("/")
@@ -54,11 +54,11 @@ export class ShoppingListController {
 
     if (!result.success) {
       res.status(400);
-      return res.json({ error: result });
+      return res.json(errorResponse(result));
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return res.json({ data: successResult.data });
+    return res.json(successResponse(successResult.data));
   }
 
   @httpPut("/:id")
@@ -72,11 +72,11 @@ export class ShoppingListController {
 
     if (!result.success) {
       res.status(400);
-      return res.json({ error: result });
+      return res.json(errorResponse(result));
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return res.json({ data: successResult.data });
+    return res.json(successResponse(successResult.data));
   }
 
   @httpDelete("/:id")
@@ -87,10 +87,10 @@ export class ShoppingListController {
 
     if (!result.success) {
       res.status(400);
-      return res.json({ error: result });
+      return res.json(errorResponse(result));
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return res.json({ data: successResult.data });
+    return res.json(successResponse(successResult.data));
   }
 }

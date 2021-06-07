@@ -1,5 +1,5 @@
 import { ValidationErrorResult } from "../common/validationResult";
-import { ServiceResult, ServiceSuccessResult } from "../common/serviceResult";
+import { ServiceResult, ServiceSuccessResult, success } from "../common/serviceResult";
 import { inject, injectable } from "inversify";
 import { ShoppingList } from ".prisma/client";
 
@@ -38,7 +38,7 @@ export class ShoppingListService implements IShoppingListService {
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList[]>;
-    return { success: true, data: successResult.data };
+    return success(successResult.data);
   }
   async get(id: number): Promise<ServiceResult<ShoppingList>> {
     const result = await this.shoppingListRepository.get(id);
@@ -49,7 +49,7 @@ export class ShoppingListService implements IShoppingListService {
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return { success: true, data: successResult.data };
+    return success(successResult.data);
   }
 
   async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
@@ -67,7 +67,7 @@ export class ShoppingListService implements IShoppingListService {
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return { success: true, data: successResult.data };
+    return success(successResult.data);
   }
 
   async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
@@ -85,7 +85,7 @@ export class ShoppingListService implements IShoppingListService {
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return { success: true, data: successResult.data };
+    return success(successResult.data);
   }
 
   async delete(id: number): Promise<ServiceResult<ShoppingList>> {
@@ -97,6 +97,6 @@ export class ShoppingListService implements IShoppingListService {
     }
 
     const successResult = result as ServiceSuccessResult<ShoppingList>;
-    return { success: true, data: successResult.data };
+    return success(successResult.data);
   }
 }
