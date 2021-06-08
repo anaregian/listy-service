@@ -12,12 +12,12 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
   constructor(private readonly db: DBService) {}
 
   async getAll(): Promise<ServiceResult<Item[]>> {
-    const items = await this.db.item.findMany();
+    const items = await this.db.item.findMany({ include: { category: true } });
     return success(items);
   }
 
   async get(id: number): Promise<ServiceResult<Item>> {
-    const item = await this.db.item.findFirst({ where: { id } });
+    const item = await this.db.item.findFirst({ where: { id }, include: { category: true } });
 
     if (item == null) {
       return error("", "Item does not exist");
@@ -28,7 +28,20 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
 
   async create(data: ItemDto): Promise<ServiceResult<Item>> {
     try {
-      const item = await this.db.item.create({ data });
+      const item = await this.db.item.create({
+        data: {
+          name: data.name,
+          ...(data.categoryId && {
+            category: {
+              connect: {
+                id: data.categoryId
+              }
+            }
+          })
+        },
+        include: { category: true }
+      });
+
       return success(item);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -43,7 +56,25 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
 
   async update(id: number, data: ItemDto): Promise<ServiceResult<Item>> {
     try {
-      const item = await this.db.item.update({ where: { id }, data });
+      const item = await this.db.item.update({
+        where: { id },
+        data: {
+          name: data.name,
+          category: {
+            ...(data.categoryId
+              ? {
+                  connect: {
+                    id: data.categoryId
+                  }
+                }
+              : {
+                  disconnect: true
+                })
+          }
+        },
+        include: { category: true }
+      });
+
       return success(item);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {

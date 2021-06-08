@@ -1,23 +1,23 @@
-import { Item } from "@prisma/client";
+import { Category } from "@prisma/client";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
 import { errorResponse, ResponseResult, successResponse } from "../common/responseResult";
 import { IService } from "../common/service";
 import { TYPES } from "../modules/types";
-import { ItemDto } from "./itemDto";
+import { CategoryDto } from "./categoryDto";
 
-@controller("/api/items")
-export class ItemController {
-  itemService: IService<Item, ItemDto>;
+@controller("/api/categories")
+export class CategoryController {
+  categoryService: IService<Category, CategoryDto>;
 
-  constructor(@inject(TYPES.IItemService) itemService: IService<Item, ItemDto>) {
-    this.itemService = itemService;
+  constructor(@inject(TYPES.ICategoryService) categoryService: IService<Category, CategoryDto>) {
+    this.categoryService = categoryService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<Item[]>>) {
-    const result = await this.itemService.getAll();
+  async index(_: Request, res: Response<ResponseResult<Category[]>>) {
+    const result = await this.categoryService.getAll();
 
     if (!result.success) {
       res.status(400);
@@ -28,9 +28,9 @@ export class ItemController {
   }
 
   @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<Item>>) {
+  async show(req: Request, res: Response<ResponseResult<Category>>) {
     const id = parseInt(req.params.id);
-    const result = await this.itemService.get(id);
+    const result = await this.categoryService.get(id);
 
     if (!result.success) {
       res.status(400);
@@ -41,13 +41,12 @@ export class ItemController {
   }
 
   @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<Item>>) {
-    const data: ItemDto = {
-      name: req.body.name,
-      categoryId: req.body.categoryId
+  async create(req: Request, res: Response<ResponseResult<Category>>) {
+    const data: CategoryDto = {
+      name: req.body.name
     };
 
-    const result = await this.itemService.create(data);
+    const result = await this.categoryService.create(data);
 
     if (!result.success) {
       res.status(400);
@@ -58,14 +57,13 @@ export class ItemController {
   }
 
   @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<Item>>) {
+  async update(req: Request, res: Response<ResponseResult<Category>>) {
     const id = parseInt(req.params.id);
-    const data: ItemDto = {
-      name: req.body.name,
-      categoryId: req.body.categoryId
+    const data: CategoryDto = {
+      name: req.body.name
     };
 
-    const result = await this.itemService.update(id, data);
+    const result = await this.categoryService.update(id, data);
 
     if (!result.success) {
       res.status(400);
@@ -76,10 +74,10 @@ export class ItemController {
   }
 
   @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<Item>>) {
+  async delete(req: Request, res: Response<ResponseResult<Category>>) {
     const id = parseInt(req.params.id);
 
-    const result = await this.itemService.delete(id);
+    const result = await this.categoryService.delete(id);
 
     if (!result.success) {
       res.status(400);

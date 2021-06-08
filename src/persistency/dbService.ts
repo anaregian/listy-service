@@ -6,7 +6,10 @@ export class DBService {
   private db: PrismaClient;
 
   constructor() {
-    this.db = new PrismaClient();
+    this.db = new PrismaClient({
+      log: ["error", "info", "query", "warn"],
+      errorFormat: "pretty"
+    });
   }
 
   get shoppingList() {
@@ -15,5 +18,9 @@ export class DBService {
 
   get item() {
     return this.db.item;
+  }
+
+  get category() {
+    return this.db.category;
   }
 }

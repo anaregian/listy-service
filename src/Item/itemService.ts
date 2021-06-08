@@ -20,6 +20,7 @@ export class ItemService implements IService<Item, ItemDto> {
     this.itemRepository = itemRepository;
     this.itemValidator = itemValidator;
   }
+
   async getAll(): Promise<ServiceResult<Item[]>> {
     const result = await this.itemRepository.getAll();
 
