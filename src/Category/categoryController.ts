@@ -1,4 +1,3 @@
-import { Category } from "@prisma/client";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
@@ -6,17 +5,18 @@ import { errorResponse, ResponseResult, successResponse } from "../common/respon
 import { IService } from "../common/service";
 import { TYPES } from "../modules/types";
 import { CategoryDto } from "./categoryDto";
+import { CategoryModel } from "./categoryModel";
 
 @controller("/api/categories")
 export class CategoryController {
-  categoryService: IService<Category, CategoryDto>;
+  categoryService: IService<CategoryModel, CategoryDto>;
 
-  constructor(@inject(TYPES.ICategoryService) categoryService: IService<Category, CategoryDto>) {
+  constructor(@inject(TYPES.ICategoryService) categoryService: IService<CategoryModel, CategoryDto>) {
     this.categoryService = categoryService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<Category[]>>) {
+  async index(_: Request, res: Response<ResponseResult<CategoryModel[]>>) {
     const result = await this.categoryService.getAll();
 
     if (!result.success) {
@@ -28,7 +28,7 @@ export class CategoryController {
   }
 
   @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<Category>>) {
+  async show(req: Request, res: Response<ResponseResult<CategoryModel>>) {
     const id = parseInt(req.params.id);
     const result = await this.categoryService.get(id);
 
@@ -41,7 +41,7 @@ export class CategoryController {
   }
 
   @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<Category>>) {
+  async create(req: Request, res: Response<ResponseResult<CategoryModel>>) {
     const data: CategoryDto = {
       name: req.body.name
     };
@@ -57,7 +57,7 @@ export class CategoryController {
   }
 
   @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<Category>>) {
+  async update(req: Request, res: Response<ResponseResult<CategoryModel>>) {
     const id = parseInt(req.params.id);
     const data: CategoryDto = {
       name: req.body.name
@@ -74,7 +74,7 @@ export class CategoryController {
   }
 
   @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<Category>>) {
+  async delete(req: Request, res: Response<ResponseResult<boolean>>) {
     const id = parseInt(req.params.id);
 
     const result = await this.categoryService.delete(id);

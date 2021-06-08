@@ -1,4 +1,3 @@
-import { Item } from "@prisma/client";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
@@ -6,17 +5,18 @@ import { errorResponse, ResponseResult, successResponse } from "../common/respon
 import { IService } from "../common/service";
 import { TYPES } from "../modules/types";
 import { ItemDto } from "./itemDto";
+import { ItemModel } from "./itemModel";
 
 @controller("/api/items")
 export class ItemController {
-  itemService: IService<Item, ItemDto>;
+  itemService: IService<ItemModel, ItemDto>;
 
-  constructor(@inject(TYPES.IItemService) itemService: IService<Item, ItemDto>) {
+  constructor(@inject(TYPES.IItemService) itemService: IService<ItemModel, ItemDto>) {
     this.itemService = itemService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<Item[]>>) {
+  async index(_: Request, res: Response<ResponseResult<ItemModel[]>>) {
     const result = await this.itemService.getAll();
 
     if (!result.success) {
@@ -28,7 +28,7 @@ export class ItemController {
   }
 
   @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<Item>>) {
+  async show(req: Request, res: Response<ResponseResult<ItemModel>>) {
     const id = parseInt(req.params.id);
     const result = await this.itemService.get(id);
 
@@ -41,7 +41,7 @@ export class ItemController {
   }
 
   @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<Item>>) {
+  async create(req: Request, res: Response<ResponseResult<ItemModel>>) {
     const data: ItemDto = {
       name: req.body.name,
       categoryId: req.body.categoryId
@@ -58,7 +58,7 @@ export class ItemController {
   }
 
   @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<Item>>) {
+  async update(req: Request, res: Response<ResponseResult<ItemModel>>) {
     const id = parseInt(req.params.id);
     const data: ItemDto = {
       name: req.body.name,
@@ -76,7 +76,7 @@ export class ItemController {
   }
 
   @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<Item>>) {
+  async delete(req: Request, res: Response<ResponseResult<boolean>>) {
     const id = parseInt(req.params.id);
 
     const result = await this.itemService.delete(id);

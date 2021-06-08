@@ -1,4 +1,3 @@
-import { Item } from ".prisma/client";
 import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
 import { ErrorCodes } from "../common/errorCodes";
@@ -6,18 +5,19 @@ import { error, ServiceResult, success } from "../common/ServiceResult";
 import { IRepository } from "./../common/repository";
 import { DBService } from "./../persistency/dbService";
 import { ItemDto } from "./itemDto";
+import { ItemModel } from "./itemModel";
 
 @injectable()
-export class ItemRepository implements IRepository<Item, ItemDto> {
+export class ItemRepository implements IRepository<ItemModel, ItemDto> {
   constructor(private readonly db: DBService) {}
 
-  async getAll(): Promise<ServiceResult<Item[]>> {
-    const items = await this.db.item.findMany({ include: { category: true } });
+  async getAll(): Promise<ServiceResult<ItemModel[]>> {
+    const items = await this.db.item.findMany({ include: { category: true, shoppingListItems: true } });
     return success(items);
   }
 
-  async get(id: number): Promise<ServiceResult<Item>> {
-    const item = await this.db.item.findFirst({ where: { id }, include: { category: true } });
+  async get(id: number): Promise<ServiceResult<ItemModel>> {
+    const item = await this.db.item.findFirst({ where: { id }, include: { category: true, shoppingListItems: true } });
 
     if (item == null) {
       return error("", "Item does not exist");
@@ -26,7 +26,7 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
     return success(item);
   }
 
-  async create(data: ItemDto): Promise<ServiceResult<Item>> {
+  async create(data: ItemDto): Promise<ServiceResult<ItemModel>> {
     try {
       const item = await this.db.item.create({
         data: {
@@ -39,7 +39,7 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
             }
           })
         },
-        include: { category: true }
+        include: { category: true, shoppingListItems: true }
       });
 
       return success(item);
@@ -54,7 +54,7 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
     }
   }
 
-  async update(id: number, data: ItemDto): Promise<ServiceResult<Item>> {
+  async update(id: number, data: ItemDto): Promise<ServiceResult<ItemModel>> {
     try {
       const item = await this.db.item.update({
         where: { id },
@@ -72,7 +72,7 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
                 })
           }
         },
-        include: { category: true }
+        include: { category: true, shoppingListItems: true }
       });
 
       return success(item);
@@ -89,10 +89,10 @@ export class ItemRepository implements IRepository<Item, ItemDto> {
     return error("", "Unexpected error");
   }
 
-  async delete(id: number): Promise<ServiceResult<Item>> {
+  async delete(id: number): Promise<ServiceResult<boolean>> {
     try {
-      const item = await this.db.item.delete({ where: { id } });
-      return success(item);
+      await this.db.item.delete({ where: { id }, include: { category: true, shoppingListItems: true } });
+      return success(true);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.RecordNotFound) {

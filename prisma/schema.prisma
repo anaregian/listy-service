@@ -8,19 +8,21 @@ generator client {
 }
 
 model ShoppingList {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String   @unique @db.VarChar(255)
+  id                Int                @id @default(autoincrement())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  name              String             @unique @db.VarChar(255)
+  shoppingListItems ShoppingListItem[]
 }
 
 model Item {
-  id         Int       @id @default(autoincrement())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  name       String    @unique @db.VarChar(255)
-  category   Category? @relation(fields: [categoryId], references: [id])
-  categoryId Int?
+  id                Int                @id @default(autoincrement())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  name              String             @unique @db.VarChar(255)
+  categoryId        Int?               @db.Int
+  category          Category?          @relation(fields: [categoryId], references: [id])
+  shoppingListItems ShoppingListItem[]
 }
 
 model Category {
@@ -28,5 +30,20 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name      String   @unique @db.VarChar(255)
-  item      Item[]
+  items     Item[]
+}
+
+model ShoppingListItem {
+  id             Int          @id @default(autoincrement())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  note           String?      @db.VarChar(255)
+  bought         Boolean      @default(false) @db.TinyInt
+  quantity       String?      @db.VarChar(50)
+  shoppingListId Int          @db.Int
+  itemId         Int          @db.Int
+  shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id])
+  item           Item         @relation(fields: [itemId], references: [id])
+
+  @@unique([itemId, shoppingListId])
 }

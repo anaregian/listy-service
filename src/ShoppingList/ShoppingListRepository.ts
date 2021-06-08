@@ -1,22 +1,23 @@
-import { Prisma, ShoppingList } from ".prisma/client";
+import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
 import { ErrorCodes } from "../common/errorCodes";
 import { error, ServiceResult, success } from "../common/ServiceResult";
 import { DBService } from "../persistency/dbService";
 import { IRepository } from "./../common/repository";
 import { ShoppingListDto } from "./shoppingListDto";
+import { ShoppingListModel } from "./shoppingListModel";
 
 @injectable()
-export class ShoppingListRepository implements IRepository<ShoppingList, ShoppingListDto> {
+export class ShoppingListRepository implements IRepository<ShoppingListModel, ShoppingListDto> {
   constructor(private readonly db: DBService) {}
 
-  async getAll(): Promise<ServiceResult<ShoppingList[]>> {
-    const shoppingLists = await this.db.shoppingList.findMany();
+  async getAll(): Promise<ServiceResult<ShoppingListModel[]>> {
+    const shoppingLists = await this.db.shoppingList.findMany({ include: { shoppingListItems: true } });
     return success(shoppingLists);
   }
 
-  async get(id: number): Promise<ServiceResult<ShoppingList>> {
-    const shoppingList = await this.db.shoppingList.findFirst({ where: { id } });
+  async get(id: number): Promise<ServiceResult<ShoppingListModel>> {
+    const shoppingList = await this.db.shoppingList.findFirst({ where: { id }, include: { shoppingListItems: true } });
 
     if (shoppingList == null) {
       return error("", "Shopping list does not exist");
@@ -25,9 +26,9 @@ export class ShoppingListRepository implements IRepository<ShoppingList, Shoppin
     return success(shoppingList);
   }
 
-  async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
+  async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingListModel>> {
     try {
-      const shoppingList = await this.db.shoppingList.create({ data });
+      const shoppingList = await this.db.shoppingList.create({ data, include: { shoppingListItems: true } });
       return success(shoppingList);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -40,9 +41,13 @@ export class ShoppingListRepository implements IRepository<ShoppingList, Shoppin
     }
   }
 
-  async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingList>> {
+  async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingListModel>> {
     try {
-      const shoppingList = await this.db.shoppingList.update({ where: { id }, data });
+      const shoppingList = await this.db.shoppingList.update({
+        where: { id },
+        data,
+        include: { shoppingListItems: true }
+      });
       return success(shoppingList);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -57,10 +62,10 @@ export class ShoppingListRepository implements IRepository<ShoppingList, Shoppin
     return error("", "Unexpected error");
   }
 
-  async delete(id: number): Promise<ServiceResult<ShoppingList>> {
+  async delete(id: number): Promise<ServiceResult<boolean>> {
     try {
-      const shoppingList = await this.db.shoppingList.delete({ where: { id } });
-      return success(shoppingList);
+      await this.db.shoppingList.delete({ where: { id }, include: { shoppingListItems: true } });
+      return success(true);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.RecordNotFound) {

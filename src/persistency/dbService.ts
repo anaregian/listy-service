@@ -16,6 +16,10 @@ export class DBService {
     return this.db.shoppingList;
   }
 
+  get shoppingListItem() {
+    return this.db.shoppingListItem;
+  }
+
   get item() {
     return this.db.item;
   }

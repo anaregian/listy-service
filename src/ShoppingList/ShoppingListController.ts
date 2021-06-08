@@ -1,4 +1,3 @@
-import { ShoppingList } from ".prisma/client";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
@@ -6,17 +5,18 @@ import { errorResponse, ResponseResult, successResponse } from "../common/respon
 import { TYPES } from "../modules/types";
 import { IService } from "./../common/service";
 import { ShoppingListDto } from "./shoppingListDto";
+import { ShoppingListModel } from "./shoppingListModel";
 
 @controller("/api/shoppingLists")
 export class ShoppingListController {
-  shoppingListService: IService<ShoppingList, ShoppingListDto>;
+  shoppingListService: IService<ShoppingListModel, ShoppingListDto>;
 
-  constructor(@inject(TYPES.IShoppingListService) shoppingListService: IService<ShoppingList, ShoppingListDto>) {
+  constructor(@inject(TYPES.IShoppingListService) shoppingListService: IService<ShoppingListModel, ShoppingListDto>) {
     this.shoppingListService = shoppingListService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<ShoppingList[]>>) {
+  async index(_: Request, res: Response<ResponseResult<ShoppingListModel[]>>) {
     const result = await this.shoppingListService.getAll();
 
     if (!result.success) {
@@ -28,7 +28,7 @@ export class ShoppingListController {
   }
 
   @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<ShoppingList>>) {
+  async show(req: Request, res: Response<ResponseResult<ShoppingListModel>>) {
     const id = parseInt(req.params.id);
     const result = await this.shoppingListService.get(id);
 
@@ -41,7 +41,7 @@ export class ShoppingListController {
   }
 
   @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<ShoppingList>>) {
+  async create(req: Request, res: Response<ResponseResult<ShoppingListModel>>) {
     const data: ShoppingListDto = {
       name: req.body.name
     };
@@ -57,7 +57,7 @@ export class ShoppingListController {
   }
 
   @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<ShoppingList>>) {
+  async update(req: Request, res: Response<ResponseResult<ShoppingListModel>>) {
     const id = parseInt(req.params.id);
     const data: ShoppingListDto = {
       name: req.body.name
@@ -74,7 +74,7 @@ export class ShoppingListController {
   }
 
   @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<ShoppingList>>) {
+  async delete(req: Request, res: Response<ResponseResult<boolean>>) {
     const id = parseInt(req.params.id);
 
     const result = await this.shoppingListService.delete(id);
@@ -84,6 +84,6 @@ export class ShoppingListController {
       return res.json(errorResponse(result));
     }
 
-    return res.json(successResponse(result.data));
+    return res.json(successResponse(true));
   }
 }

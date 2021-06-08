@@ -1,4 +1,3 @@
-import { Category } from ".prisma/client";
 import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
 import { IRepository } from "../common/repository";
@@ -6,18 +5,19 @@ import { error, ServiceResult, success } from "../common/ServiceResult";
 import { ErrorCodes } from "./../common/errorCodes";
 import { DBService } from "./../persistency/dbService";
 import { CategoryDto } from "./categoryDto";
+import { CategoryModel } from "./categoryModel";
 
 @injectable()
-export class CategoryRepository implements IRepository<Category, CategoryDto> {
+export class CategoryRepository implements IRepository<CategoryModel, CategoryDto> {
   constructor(private readonly db: DBService) {}
 
-  async getAll(): Promise<ServiceResult<Category[]>> {
-    const categories = await this.db.category.findMany();
+  async getAll(): Promise<ServiceResult<CategoryModel[]>> {
+    const categories = await this.db.category.findMany({ include: { items: true } });
     return success(categories);
   }
 
-  async get(id: number): Promise<ServiceResult<Category>> {
-    const category = await this.db.category.findFirst({ where: { id } });
+  async get(id: number): Promise<ServiceResult<CategoryModel>> {
+    const category = await this.db.category.findFirst({ where: { id }, include: { items: true } });
 
     if (category == null) {
       return error("", "Category does not exist");
@@ -26,9 +26,9 @@ export class CategoryRepository implements IRepository<Category, CategoryDto> {
     return success(category);
   }
 
-  async create(data: CategoryDto): Promise<ServiceResult<Category>> {
+  async create(data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
     try {
-      const category = await this.db.category.create({ data });
+      const category = await this.db.category.create({ data, include: { items: true } });
       return success(category);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -41,9 +41,9 @@ export class CategoryRepository implements IRepository<Category, CategoryDto> {
     }
   }
 
-  async update(id: number, data: CategoryDto): Promise<ServiceResult<Category>> {
+  async update(id: number, data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
     try {
-      const category = await this.db.category.update({ where: { id }, data });
+      const category = await this.db.category.update({ where: { id }, data, include: { items: true } });
       return success(category);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -58,10 +58,10 @@ export class CategoryRepository implements IRepository<Category, CategoryDto> {
     }
   }
 
-  async delete(id: number): Promise<ServiceResult<Category>> {
+  async delete(id: number): Promise<ServiceResult<boolean>> {
     try {
-      const category = await this.db.category.delete({ where: { id } });
-      return success(category);
+      await this.db.category.delete({ where: { id }, include: { items: true } });
+      return success(true);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.RecordNotFound) {

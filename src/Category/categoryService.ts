@@ -1,4 +1,3 @@
-import { Category } from "@prisma/client";
 import { inject, injectable } from "inversify";
 import { IRepository } from "../common/repository";
 import { IService } from "../common/service";
@@ -7,21 +6,22 @@ import { ValidationErrorResult } from "../common/validationResult";
 import { IValidator } from "../common/validator";
 import { TYPES } from "../modules/types";
 import { CategoryDto } from "./categoryDto";
+import { CategoryModel } from "./categoryModel";
 
 @injectable()
-export class CategoryService implements IService<Category, CategoryDto> {
-  categoryRepository: IRepository<Category, CategoryDto>;
+export class CategoryService implements IService<CategoryModel, CategoryDto> {
+  categoryRepository: IRepository<CategoryModel, CategoryDto>;
   categoryValidator: IValidator<CategoryDto>;
 
   constructor(
-    @inject(TYPES.ICategoryRepository) categoryRepository: IRepository<Category, CategoryDto>,
+    @inject(TYPES.ICategoryRepository) categoryRepository: IRepository<CategoryModel, CategoryDto>,
     @inject(TYPES.ICategoryValidator) categoryValidator: IValidator<CategoryDto>
   ) {
     this.categoryRepository = categoryRepository;
     this.categoryValidator = categoryValidator;
   }
 
-  async getAll(): Promise<ServiceResult<Category[]>> {
+  async getAll(): Promise<ServiceResult<CategoryModel[]>> {
     const result = await this.categoryRepository.getAll();
 
     if (!result.success) {
@@ -32,7 +32,7 @@ export class CategoryService implements IService<Category, CategoryDto> {
     return success(result.data);
   }
 
-  async get(id: number): Promise<ServiceResult<Category>> {
+  async get(id: number): Promise<ServiceResult<CategoryModel>> {
     const result = await this.categoryRepository.get(id);
 
     if (!result.success) {
@@ -42,7 +42,7 @@ export class CategoryService implements IService<Category, CategoryDto> {
     return success(result.data);
   }
 
-  async create(data: CategoryDto): Promise<ServiceResult<Category>> {
+  async create(data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
     const validationResult = this.categoryValidator.validate(data);
 
     if (!validationResult.success) {
@@ -58,7 +58,7 @@ export class CategoryService implements IService<Category, CategoryDto> {
     return success(result.data);
   }
 
-  async update(id: number, data: CategoryDto): Promise<ServiceResult<Category>> {
+  async update(id: number, data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
     const validationResult = this.categoryValidator.validate(data);
 
     if (!validationResult.success) {
@@ -74,7 +74,7 @@ export class CategoryService implements IService<Category, CategoryDto> {
     return success(result.data);
   }
 
-  async delete(id: number): Promise<ServiceResult<Category>> {
+  async delete(id: number): Promise<ServiceResult<boolean>> {
     const result = await this.categoryRepository.delete(id);
 
     if (!result.success) {
