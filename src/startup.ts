@@ -5,5 +5,6 @@ import "./Category/categoryController";
 import "./Item/itemController";
 import "./ShoppingList/shoppingListController";
 import "./ShoppingListItem/shoppingListItemController";
+import "./Vendor/vendorController";
 
 new App().init();

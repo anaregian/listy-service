@@ -2,7 +2,6 @@ import { inject, injectable } from "inversify";
 import { IRepository } from "../common/repository";
 import { IService } from "../common/service";
 import { ServiceResult, success } from "../common/ServiceResult";
-import { ValidationErrorResult } from "../common/validationResult";
 import { IValidator } from "../common/validator";
 import { TYPES } from "../modules/types";
 import { CategoryDto } from "./categoryDto";
@@ -25,8 +24,7 @@ export class CategoryService implements IService<CategoryModel, CategoryDto> {
     const result = await this.categoryRepository.getAll();
 
     if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
+      return result;
     }
 
     return success(result.data);

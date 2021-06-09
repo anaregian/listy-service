@@ -13,5 +13,9 @@ export const TYPES = {
 
   IShoppingListItemService: Symbol.for("IAssociationService<ShoppingListItemModel, ShoppingListItemDto>"),
   IShoppingListItemRepository: Symbol.for("IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto>"),
-  IShoppingListItemValidator: Symbol.for("IValidator<ShoppingListItemDto>")
+  IShoppingListItemValidator: Symbol.for("IValidator<ShoppingListItemDto>"),
+
+  IVendorRepository: Symbol.for("IRepository<VendorModel, VendorDto>"),
+  IVendorService: Symbol.for("IService<VendorModel, VendorDto>"),
+  IVendorValidator: Symbol.for("IValidator<VendorDto>")
 };

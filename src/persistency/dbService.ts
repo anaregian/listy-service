@@ -27,4 +27,8 @@ export class DBService {
   get category() {
     return this.db.category;
   }
+
+  get vendor() {
+    return this.db.vendor;
+  }
 }

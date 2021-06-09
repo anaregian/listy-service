@@ -2,6 +2,7 @@ import { Container } from "inversify";
 import { itemModules } from "../Item/itemModules";
 import { DBService } from "../persistency/dbService";
 import { shoppingListModules } from "../ShoppingList/shoppingListModules";
+import { vendorModules } from "../Vendor/vendorModules";
 import { categoryModules } from "./../Category/categoryModules";
 import { shoppingListItemModules } from "./../ShoppingListItem/shoppingListItemModules";
 
@@ -12,3 +13,4 @@ container.load(shoppingListModules);
 container.load(itemModules);
 container.load(categoryModules);
 container.load(shoppingListItemModules);
+container.load(vendorModules);
