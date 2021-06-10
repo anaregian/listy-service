@@ -51,7 +51,7 @@ export class CategoryRepository implements IRepository<CategoryModel, CategoryDt
           return error("", "Category not found");
         }
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return { success: false, attribute: "name", message: "Category already exists" };
+          return error("name", "Category already exists");
         }
       }
       return error("", "Unexpected error");

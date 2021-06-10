@@ -31,4 +31,12 @@ export class DBService {
   get vendor() {
     return this.db.vendor;
   }
+
+  get vendorItemPrice() {
+    return this.db.vendorItemPrice;
+  }
+
+  get unit() {
+    return this.db.unit;
+  }
 }

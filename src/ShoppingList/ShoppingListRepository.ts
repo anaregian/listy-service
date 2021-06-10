@@ -55,7 +55,7 @@ export class ShoppingListRepository implements IRepository<ShoppingListModel, Sh
           return error("", "Shopping list not found");
         }
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return { success: false, attribute: "name", message: "Shopping list already exists" };
+          return error("name", "Shopping list already exists");
         }
       }
     }
@@ -64,7 +64,7 @@ export class ShoppingListRepository implements IRepository<ShoppingListModel, Sh
 
   async delete(id: number): Promise<ServiceResult<boolean>> {
     try {
-      await this.db.shoppingList.delete({ where: { id }, include: { shoppingListItems: true } });
+      await this.db.shoppingList.delete({ where: { id } });
       return success(true);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {

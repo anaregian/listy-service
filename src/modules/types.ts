@@ -17,5 +17,13 @@ export const TYPES = {
 
   IVendorRepository: Symbol.for("IRepository<VendorModel, VendorDto>"),
   IVendorService: Symbol.for("IService<VendorModel, VendorDto>"),
-  IVendorValidator: Symbol.for("IValidator<VendorDto>")
+  IVendorValidator: Symbol.for("IValidator<VendorDto>"),
+
+  IVendorItemPriceService: Symbol.for("IAssociationService<VendorItemPriceModel, VendorItemPriceDto>"),
+  IVendorItemPriceRepository: Symbol.for("IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto>"),
+  IVendorItemPriceValidator: Symbol.for("IValidator<VendorItemPriceDto>"),
+
+  IUnitRepository: Symbol.for("IRepository<UnitModel, UnitDto>"),
+  IUnitService: Symbol.for("IService<UnitModel, UnitDto>"),
+  IUnitValidator: Symbol.for("IValidator<UnitDto>")
 };

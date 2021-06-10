@@ -1,5 +1,5 @@
 import { Category, Item } from "@prisma/client";
 
-export type CategoryModel = Category & {
+export interface CategoryModel extends Category {
   items: Item[];
-};
+}

@@ -12,12 +12,17 @@ export class ItemRepository implements IRepository<ItemModel, ItemDto> {
   constructor(private readonly db: DBService) {}
 
   async getAll(): Promise<ServiceResult<ItemModel[]>> {
-    const items = await this.db.item.findMany({ include: { category: true, shoppingListItems: true } });
+    const items = await this.db.item.findMany({
+      include: { category: true, shoppingListItems: true, vendorItemPrices: true }
+    });
     return success(items);
   }
 
   async get(id: number): Promise<ServiceResult<ItemModel>> {
-    const item = await this.db.item.findFirst({ where: { id }, include: { category: true, shoppingListItems: true } });
+    const item = await this.db.item.findFirst({
+      where: { id },
+      include: { category: true, shoppingListItems: true, vendorItemPrices: true }
+    });
 
     if (item == null) {
       return error("", "Item does not exist");
@@ -39,7 +44,7 @@ export class ItemRepository implements IRepository<ItemModel, ItemDto> {
             }
           })
         },
-        include: { category: true, shoppingListItems: true }
+        include: { category: true, shoppingListItems: true, vendorItemPrices: true }
       });
 
       return success(item);
@@ -72,7 +77,7 @@ export class ItemRepository implements IRepository<ItemModel, ItemDto> {
                 })
           }
         },
-        include: { category: true, shoppingListItems: true }
+        include: { category: true, shoppingListItems: true, vendorItemPrices: true }
       });
 
       return success(item);
@@ -82,7 +87,7 @@ export class ItemRepository implements IRepository<ItemModel, ItemDto> {
           return error("", "Item not found");
         }
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return { success: false, attribute: "name", message: "Item already exists" };
+          return error("name", "Item already exists");
         }
       }
     }
@@ -91,7 +96,7 @@ export class ItemRepository implements IRepository<ItemModel, ItemDto> {
 
   async delete(id: number): Promise<ServiceResult<boolean>> {
     try {
-      await this.db.item.delete({ where: { id }, include: { category: true, shoppingListItems: true } });
+      await this.db.item.delete({ where: { id } });
       return success(true);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {

@@ -1,6 +1,7 @@
-import { Category, ShoppingListItem, Item } from "@prisma/client";
+import { Category, Item, ShoppingListItem, VendorItemPrice } from "@prisma/client";
 
-export type ItemModel = Item & {
+export interface ItemModel extends Item {
   category: Category | null;
   shoppingListItems: ShoppingListItem[];
-};
+  vendorItemPrices: VendorItemPrice[];
+}

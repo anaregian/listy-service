@@ -23,6 +23,7 @@ model Item {
   categoryId        Int?               @db.Int
   category          Category?          @relation(fields: [categoryId], references: [id])
   shoppingListItems ShoppingListItem[]
+  vendorItemPrices  VendorItemPrice[]
 }
 
 model Category {
@@ -49,8 +50,34 @@ model ShoppingListItem {
 }
 
 model Vendor {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  name      String   @unique @db.VarChar(255)
+  id               Int               @id @default(autoincrement())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  name             String            @unique @db.VarChar(255)
+  vendorItemPrices VendorItemPrice[]
+}
+
+model VendorItemPrice {
+  id           Int      @id @default(autoincrement())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  regularPrice Float    @db.Float
+  reducedPrice Float?   @db.Float
+  itemId       Int
+  vendorId     Int
+  unitId       Int
+  unit         Unit     @relation(fields: [unitId], references: [id])
+  vendor       Vendor   @relation(fields: [vendorId], references: [id])
+  item         Item     @relation(fields: [itemId], references: [id])
+
+  @@unique([itemId, vendorId])
+}
+
+model Unit {
+  id               Int               @id @default(autoincrement())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  name             String            @unique @db.VarChar(100)
+  symbol           String            @unique @db.VarChar(10)
+  vendorItemPrices VendorItemPrice[]
 }

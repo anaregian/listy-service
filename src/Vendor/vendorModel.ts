@@ -1,3 +1,5 @@
-import { Vendor } from "@prisma/client";
+import { Vendor, VendorItemPrice } from "@prisma/client";
 
-export type VendorModel = Vendor;
+export interface VendorModel extends Vendor {
+  vendorItemPrices: VendorItemPrice[];
+}

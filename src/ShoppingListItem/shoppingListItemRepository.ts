@@ -69,7 +69,7 @@ export class ShoppingListItemRepository implements IAssociationRepository<Shoppi
       console.log(e);
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Shopping list item already exists");
+          return error("", "Shopping list item already exists");
         }
       }
 
@@ -113,7 +113,7 @@ export class ShoppingListItemRepository implements IAssociationRepository<Shoppi
           return error("", "Shopping list item not found");
         }
         if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return { success: false, attribute: "name", message: "Shopping list item already exists" };
+          return error("", "Shopping list item already exists");
         }
       }
     }
@@ -123,25 +123,20 @@ export class ShoppingListItemRepository implements IAssociationRepository<Shoppi
   async delete(shoppingListId: number | null, itemId: number | null): Promise<ServiceResult<boolean>> {
     try {
       if (!shoppingListId && itemId) {
-        await this.db.shoppingListItem.deleteMany({
-          where: { itemId }
-        });
+        await this.db.shoppingListItem.deleteMany({ where: { itemId } });
 
         return success(true);
       }
 
       if (shoppingListId && !itemId) {
-        await this.db.shoppingListItem.deleteMany({
-          where: { shoppingListId }
-        });
+        await this.db.shoppingListItem.deleteMany({ where: { shoppingListId } });
 
         return success(true);
       }
 
       if (shoppingListId && itemId) {
         await this.db.shoppingListItem.delete({
-          where: { itemId_shoppingListId: { shoppingListId, itemId } },
-          include: { shoppingList: true, item: true }
+          where: { itemId_shoppingListId: { shoppingListId, itemId } }
         });
         return success(true);
       }
