@@ -1,7 +1,7 @@
 import { inject, injectable } from "inversify";
 import { IRepository } from "../common/repository";
 import { IService } from "../common/service";
-import { ServiceResult, success } from "../common/ServiceResult";
+import { ServiceResult, success } from "../common/serviceResult";
 import { IValidator } from "../common/validator";
 import { TYPES } from "../modules/types";
 import { CategoryDto } from "./categoryDto";

@@ -1,6 +1,6 @@
 import { inject, injectable } from "inversify";
 import { IAssociationRepository } from "../common/associationRepository";
-import { ServiceResult, success } from "../common/ServiceResult";
+import { ServiceResult, success } from "../common/serviceResult";
 import { IValidator } from "../common/validator";
 import { TYPES } from "../modules/types";
 import { ShoppingListItemDto } from "../ShoppingListItem/shoppingListItemDto";

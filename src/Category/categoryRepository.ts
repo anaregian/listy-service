@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
 import { IRepository } from "../common/repository";
-import { error, ServiceResult, success } from "../common/ServiceResult";
+import { error, ServiceResult, success } from "../common/serviceResult";
 import { ErrorCodes } from "./../common/errorCodes";
 import { DBService } from "./../persistency/dbService";
 import { CategoryDto } from "./categoryDto";

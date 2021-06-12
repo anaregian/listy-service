@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
 import { IAssociationRepository } from "../common/associationRepository";
-import { error, ServiceResult, success } from "../common/ServiceResult";
+import { error, ServiceResult, success } from "../common/serviceResult";
 import { ErrorCodes } from "./../common/errorCodes";
 import { DBService } from "./../persistency/dbService";
 import { VendorItemPriceDto } from "./vendorItemPriceDto";

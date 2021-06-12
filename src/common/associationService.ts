@@ -1,4 +1,4 @@
-import { ServiceResult } from "./ServiceResult";
+import { ServiceResult } from "./serviceResult";
 
 export interface IAssociationService<T, Dto> {
   getAll: (id: number) => Promise<ServiceResult<T[]>>;

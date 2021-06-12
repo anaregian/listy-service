@@ -1,5 +1,5 @@
 import { inject, injectable } from "inversify";
-import { ServiceResult, success } from "../common/ServiceResult";
+import { ServiceResult, success } from "../common/serviceResult";
 import { IValidator } from "../common/validator";
 import { TYPES } from "../modules/types";
 import { IAssociationRepository } from "./../common/associationRepository";

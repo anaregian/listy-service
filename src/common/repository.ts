@@ -1,4 +1,4 @@
-import { ServiceResult } from "./ServiceResult";
+import { ServiceResult } from "./serviceResult";
 
 export interface IRepository<T, Dto> {
   getAll: () => Promise<ServiceResult<T[]>>;
