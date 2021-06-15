@@ -1,3 +1,3 @@
-import { Unit } from "@prisma/client";
+import { Unit } from "../../prisma/client";
 
 export interface UnitModel extends Unit {}

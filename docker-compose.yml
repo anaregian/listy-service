@@ -6,7 +6,11 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
-      - ./data:/var/lib/mysql
+      - listy-data:/var/lib/mysql
     ports:
       - "3306:3306"
+volumes:
+  listy-data:
+    driver: local

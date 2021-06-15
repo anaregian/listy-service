@@ -30,7 +30,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "exclude": ["node_modules"],
-  "include": ["./src/**/*.ts", "src/index.ts"],
+  "ts-node": {
+    "ignore": ["(?:^|/)node_modules/", "(.js)"]
+  },
+  "include": ["./src/**/*.ts", "./src/index.ts"],
+  "exclude": ["node_modules", "build", "dist"],
   "typeRoots": ["./src/types", "./node_modules/@types"]
 }

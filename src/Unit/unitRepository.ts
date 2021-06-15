@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../prisma/client";
 import { injectable } from "inversify";
 import { IRepository } from "../common/repository";
 import { error, ServiceResult, success } from "../common/serviceResult";
