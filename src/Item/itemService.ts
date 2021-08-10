@@ -1,111 +1,58 @@
+import {
+  ItemCreateRequestData,
+  ItemDeleteRequestData,
+  ItemResponseData,
+  ItemShowRequestData,
+  ItemUpdateRequestData
+} from "@app/Item/data";
+import { ItemModel } from "@app/Item/itemModel";
+import { IAssociationRepository } from "@common/associationRepository";
+import { IRepository } from "@common/repository";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { inject, injectable } from "inversify";
-import { IAssociationRepository } from "../common/associationRepository";
-import { ServiceResult, success } from "../common/serviceResult";
-import { IValidator } from "../common/validator";
-import { TYPES } from "../modules/types";
-import { ShoppingListItemDto } from "../ShoppingListItem/shoppingListItemDto";
-import { ShoppingListItemModel } from "../ShoppingListItem/shoppingListItemModel";
-import { VendorItemPriceDto } from "../VendorItemPrice/vendorItemPriceDto";
-import { VendorItemPriceModel } from "../VendorItemPrice/vendorItemPriceModel";
-import { IRepository } from "./../common/repository";
-import { IService } from "./../common/service";
-import { ValidationErrorResult } from "./../common/validationResult";
-import { ItemDto } from "./itemDto";
-import { ItemModel } from "./itemModel";
 
 @injectable()
-export class ItemService implements IService<ItemModel, ItemDto> {
-  itemRepository: IRepository<ItemModel, ItemDto>;
-  shoppingListItemRepository: IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto>;
-  vendorItemPriceRepository: IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto>;
-  itemValidator: IValidator<ItemDto>;
+export class ItemService implements IService<ItemResponseData> {
+  itemRepository: IRepository<ItemModel>;
+  shoppingListItemRepository: IAssociationRepository;
+  vendorItemPriceRepository: IAssociationRepository;
 
   constructor(
-    @inject(TYPES.IItemRepository) itemRepository: IRepository<ItemModel, ItemDto>,
+    @inject(TYPES.IItemRepository) itemRepository: IRepository<ItemModel>,
     @inject(TYPES.IShoppingListItemRepository)
-    shoppingListItemRepository: IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto>,
+    shoppingListItemRepository: IAssociationRepository,
     @inject(TYPES.IVendorItemPriceRepository)
-    vendorItemPriceRepository: IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto>,
-    @inject(TYPES.IItemValidator) itemValidator: IValidator<ItemDto>
+    vendorItemPriceRepository: IAssociationRepository
   ) {
     this.itemRepository = itemRepository;
     this.shoppingListItemRepository = shoppingListItemRepository;
     this.vendorItemPriceRepository = vendorItemPriceRepository;
-    this.itemValidator = itemValidator;
   }
 
-  async getAll(): Promise<ServiceResult<ItemModel[]>> {
-    const result = await this.itemRepository.getAll();
-
-    if (!result.success) {
-      const errorResult = result as ValidationErrorResult;
-      return errorResult;
-    }
-
-    return success(result.data);
+  async getAll() {
+    const items = await this.itemRepository.getAll();
+    return ItemResponseData.fromMany(items);
   }
 
-  async get(id: number): Promise<ServiceResult<ItemModel>> {
-    const result = await this.itemRepository.get(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async get(data: ItemShowRequestData) {
+    const item = await this.itemRepository.get(data.id);
+    return ItemResponseData.from(item);
   }
 
-  async create(data: ItemDto): Promise<ServiceResult<ItemModel>> {
-    const validationResult = this.itemValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.itemRepository.create(data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async create(data: ItemCreateRequestData) {
+    const item = await this.itemRepository.create(data);
+    return ItemResponseData.from(item);
   }
 
-  async update(id: number, data: ItemDto): Promise<ServiceResult<ItemModel>> {
-    const validationResult = this.itemValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.itemRepository.update(id, data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async update(data: ItemUpdateRequestData) {
+    const item = await this.itemRepository.update(data);
+    return ItemResponseData.from(item);
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
-    const shoppingListAssociationResult = await this.shoppingListItemRepository.delete(null, id);
-
-    if (!shoppingListAssociationResult.success) {
-      return shoppingListAssociationResult;
-    }
-
-    const vendorItemAssociationResult = await this.vendorItemPriceRepository.delete(id, null);
-
-    if (!vendorItemAssociationResult.success) {
-      return vendorItemAssociationResult;
-    }
-
-    const result = await this.itemRepository.delete(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async delete(data: ItemDeleteRequestData) {
+    await this.shoppingListItemRepository.delete({ itemId: data.id });
+    await this.vendorItemPriceRepository.delete({ itemId: data.id });
+    await this.itemRepository.delete(data);
   }
 }

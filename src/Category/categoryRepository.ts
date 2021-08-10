@@ -1,74 +1,76 @@
-import { Prisma } from "../../prisma/client";
+import { CategoryModel } from "@app/Category/categoryModel";
+import { CategoryCreateRequestData, CategoryDeleteRequestData, CategoryUpdateRequestData } from "@app/Category/data";
+import { ConflictError, NotFound, PrismaErrorCodes } from "@common/exceptions";
+import { IRepository } from "@common/repository";
+import { DBService } from "@persistency/dbService";
+import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
-import { IRepository } from "../common/repository";
-import { error, ServiceResult, success } from "../common/serviceResult";
-import { ErrorCodes } from "./../common/errorCodes";
-import { DBService } from "./../persistency/dbService";
-import { CategoryDto } from "./categoryDto";
-import { CategoryModel } from "./categoryModel";
+
+const name = "Category";
+const includeOptions = { items: true };
 
 @injectable()
-export class CategoryRepository implements IRepository<CategoryModel, CategoryDto> {
-  constructor(private readonly db: DBService) {}
+export class CategoryRepository implements IRepository<CategoryModel> {
+  private readonly db: DBService;
 
-  async getAll(): Promise<ServiceResult<CategoryModel[]>> {
-    const categories = await this.db.category.findMany({ include: { items: true } });
-    return success(categories);
+  constructor(db: DBService) {
+    this.db = db;
   }
 
-  async get(id: number): Promise<ServiceResult<CategoryModel>> {
-    const category = await this.db.category.findFirst({ where: { id }, include: { items: true } });
+  async getAll() {
+    return await this.db.category.findMany({ include: includeOptions });
+  }
+
+  async get(id: number) {
+    const category = await this.db.category.findFirst({ where: { id }, include: includeOptions });
 
     if (category == null) {
-      return error("", "Category does not exist");
+      throw new NotFound(name);
     }
 
-    return success(category);
+    return category;
   }
 
-  async create(data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
+  async create(data: CategoryCreateRequestData) {
     try {
-      const category = await this.db.category.create({ data, include: { items: true } });
-      return success(category);
+      return await this.db.category.create({ data, include: includeOptions });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Category already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
 
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 
-  async update(id: number, data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
+  async update(data: CategoryUpdateRequestData) {
     try {
-      const category = await this.db.category.update({ where: { id }, data, include: { items: true } });
-      return success(category);
+      return await this.db.category.update({ where: { id: data.id }, data, include: includeOptions });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Category not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Category already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
+  async delete(data: CategoryDeleteRequestData) {
     try {
-      await this.db.category.delete({ where: { id }, include: { items: true } });
-      return success(true);
+      await this.db.category.delete({ where: { id: data.id }, include: includeOptions });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Category not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
       }
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 }

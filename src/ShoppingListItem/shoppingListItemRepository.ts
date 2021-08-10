@@ -1,154 +1,93 @@
-import { Prisma } from "../../prisma/client";
+import {
+  ShoppingListItemCreateRequestData,
+  ShoppingListItemDeleteRequestData,
+  ShoppingListItemUpdateRequestData
+} from "@app/ShoppingListItem/data";
+import { IAssociationRepository } from "@common/associationRepository";
+import { ConflictError, NotFound, PrismaErrorCodes } from "@common/exceptions";
+import { DBService } from "@persistency/dbService";
+import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
-import { ErrorCodes } from "../common/errorCodes";
-import { error, ServiceResult, success } from "../common/serviceResult";
-import { IAssociationRepository } from "./../common/associationRepository";
-import { DBService } from "./../persistency/dbService";
-import { ShoppingListItemDto } from "./shoppingListItemDto";
-import { ShoppingListItemModel } from "./shoppingListItemModel";
+
+const name = "Shopping list Item";
 
 @injectable()
-export class ShoppingListItemRepository implements IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto> {
-  constructor(private readonly db: DBService) {}
+export class ShoppingListItemRepository implements IAssociationRepository {
+  private readonly db: DBService;
 
-  async getAll(shoppingListId: number): Promise<ServiceResult<ShoppingListItemModel[]>> {
-    const shoppingListItems = await this.db.shoppingListItem.findMany({
-      where: { shoppingListId },
-      include: { shoppingList: true, item: true }
-    });
-    return success(shoppingListItems);
+  constructor(db: DBService) {
+    this.db = db;
   }
 
-  async get(shoppingListId: number, itemId: number): Promise<ServiceResult<ShoppingListItemModel>> {
-    const shoppingListItem = await this.db.shoppingListItem.findFirst({
-      where: { shoppingListId, itemId },
-      include: { shoppingList: true, item: true }
-    });
-
-    if (shoppingListItem == null) {
-      return error("", "Shopping list item does not exist");
-    }
-
-    return success(shoppingListItem);
-  }
-
-  async create(
-    shoppingListId: number,
-    itemId: number | null,
-    data: ShoppingListItemDto
-  ): Promise<ServiceResult<ShoppingListItemModel>> {
+  async create(data: ShoppingListItemCreateRequestData) {
     try {
-      const shoppingListItem = await this.db.shoppingListItem.create({
+      await this.db.shoppingListItem.create({
         data: {
           bought: false,
           note: data.note,
           quantity: data.quantity,
-          shoppingList: {
-            connect: {
-              id: shoppingListId
-            }
-          },
-          item: {
-            ...(itemId
-              ? {
-                  connect: {
-                    id: itemId
-                  }
-                }
-              : {
-                  create: {
-                    name: data.itemName!
-                  }
-                })
-          }
-        },
-        include: { shoppingList: true, item: true }
+          shoppingList: { connect: { id: data.shoppingListId } },
+          item: { ...(data.item.id ? { connect: { id: data.item.id } } : { create: { name: data.item.name! } }) }
+        }
       });
-      return success(shoppingListItem);
     } catch (e) {
-      console.log(e);
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("", "Shopping list item already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
 
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 
-  async update(
-    shoppingListId: number,
-    itemId: number,
-    data: ShoppingListItemDto
-  ): Promise<ServiceResult<ShoppingListItemModel>> {
+  async update(data: ShoppingListItemUpdateRequestData) {
     try {
-      const shoppingListItem = await this.db.shoppingListItem.update({
-        where: { itemId_shoppingListId: { shoppingListId, itemId } },
+      await this.db.shoppingListItem.update({
+        where: { id: data.id },
         data: {
           bought: data.bought,
           note: data.note,
           quantity: data.quantity,
-          ...(shoppingListId && {
-            shoppingList: {
-              connect: {
-                id: shoppingListId
-              }
-            }
-          }),
-          ...(itemId && {
-            item: {
-              connect: {
-                id: itemId
-              }
-            }
-          })
-        },
-        include: { shoppingList: true, item: true }
+          item: { update: { name: data.item.name } }
+        }
       });
-      return success(shoppingListItem);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Shopping list item not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound || e.code === PrismaErrorCodes.QueryInterpretationError) {
+          throw new NotFound(name);
         }
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("", "Shopping list item already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
+      throw new Error();
     }
-    return error("", "Unexpected error");
   }
 
-  async delete(shoppingListId: number | null, itemId: number | null): Promise<ServiceResult<boolean>> {
+  async delete(data: ShoppingListItemDeleteRequestData) {
     try {
-      if (!shoppingListId && itemId) {
-        await this.db.shoppingListItem.deleteMany({ where: { itemId } });
-
-        return success(true);
+      if (data.id) {
+        await this.db.shoppingListItem.delete({ where: { id: data.id } });
+        return;
       }
 
-      if (shoppingListId && !itemId) {
-        await this.db.shoppingListItem.deleteMany({ where: { shoppingListId } });
-
-        return success(true);
+      if (data.shoppingListId) {
+        await this.db.shoppingListItem.deleteMany({ where: { shoppingListId: data.shoppingListId } });
+        return;
       }
 
-      if (shoppingListId && itemId) {
-        await this.db.shoppingListItem.delete({
-          where: { itemId_shoppingListId: { shoppingListId, itemId } }
-        });
-        return success(true);
+      if (data.itemId) {
+        await this.db.shoppingListItem.deleteMany({ where: { itemId: data.itemId } });
+        return;
       }
-
-      return error("", "both ids are null");
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Shopping list item not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
       }
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 }

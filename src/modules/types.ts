@@ -1,29 +1,22 @@
 export const TYPES = {
-  IShoppingListRepository: Symbol.for("IRepository<ShoppingListModel, ShoppingListDto"),
-  IShoppingListService: Symbol.for("IService<ShoppingListModel, ShoppingListDto>"),
-  IShoppingListValidator: Symbol.for("IValidator<ShoppingListDto>"),
+  IShoppingListRepository: Symbol.for("IRepository<ShoppingListModel>"),
+  IShoppingListService: Symbol.for("IService<ShoppingListModel>"),
 
-  IItemRepository: Symbol.for("IRepository<ItemModel, ItemDto>"),
-  IItemService: Symbol.for("IService<ItemModel, ItemDto>"),
-  IItemValidator: Symbol.for("IValidator<ItemDto>"),
+  IItemRepository: Symbol.for("IRepository<ItemModel>"),
+  IItemService: Symbol.for("IService<ItemModel>"),
 
-  ICategoryRepository: Symbol.for("IRepository<CategoryModel, CategoryDto>"),
-  ICategoryService: Symbol.for("IService<CategoryModel, CategoryDto>"),
-  ICategoryValidator: Symbol.for("IValidator<CategoryDto>"),
+  ICategoryRepository: Symbol.for("IRepository<CategoryModel>"),
+  ICategoryService: Symbol.for("IService<CategoryModel>"),
 
-  IShoppingListItemService: Symbol.for("IAssociationService<ShoppingListItemModel, ShoppingListItemDto>"),
-  IShoppingListItemRepository: Symbol.for("IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto>"),
-  IShoppingListItemValidator: Symbol.for("IValidator<ShoppingListItemDto>"),
+  IShoppingListItemService: Symbol.for("IAssociationService<ShoppingListModel>"),
+  IShoppingListItemRepository: Symbol.for("IAssociationRepository<ShoppingListModel>"),
 
-  IVendorRepository: Symbol.for("IRepository<VendorModel, VendorDto>"),
-  IVendorService: Symbol.for("IService<VendorModel, VendorDto>"),
-  IVendorValidator: Symbol.for("IValidator<VendorDto>"),
+  IVendorRepository: Symbol.for("IRepository<VendorModel>"),
+  IVendorService: Symbol.for("IService<VendorModel>"),
 
-  IVendorItemPriceService: Symbol.for("IAssociationService<VendorItemPriceModel, VendorItemPriceDto>"),
-  IVendorItemPriceRepository: Symbol.for("IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto>"),
-  IVendorItemPriceValidator: Symbol.for("IValidator<VendorItemPriceDto>"),
+  IVendorItemPriceService: Symbol.for("IAssociationService<ItemModel>"),
+  IVendorItemPriceRepository: Symbol.for("IAssociationRepository<ItemModel>"),
 
-  IUnitRepository: Symbol.for("IRepository<UnitModel, UnitDto>"),
-  IUnitService: Symbol.for("IService<UnitModel, UnitDto>"),
-  IUnitValidator: Symbol.for("IValidator<UnitDto>")
+  IUnitRepository: Symbol.for("IRepository<UnitModel>"),
+  IUnitService: Symbol.for("IService<UnitModel>")
 };

@@ -1,74 +1,78 @@
-import { Prisma } from "../../prisma/client";
+import { VendorCreateRequestData, VendorDeleteRequestData, VendorUpdateRequestData } from "@app/Vendor/data";
+import { VendorModel } from "@app/Vendor/vendorModel";
+import { ConflictError, NotFound, PrismaErrorCodes } from "@common/exceptions";
+import { IRepository } from "@common/repository";
+import { DBService } from "@persistency/dbService";
+import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
-import { IRepository } from "../common/repository";
-import { error, ServiceResult, success } from "../common/serviceResult";
-import { ErrorCodes } from "./../common/errorCodes";
-import { DBService } from "./../persistency/dbService";
-import { VendorDto } from "./vendorDto";
-import { VendorModel } from "./vendorModel";
+
+const name = "Vendor";
+const includeOptions = { vendorItemPrices: { include: { unit: true, item: true } } };
 
 @injectable()
-export class VendorRepository implements IRepository<VendorModel, VendorDto> {
-  constructor(private readonly db: DBService) {}
+export class VendorRepository implements IRepository<VendorModel> {
+  private readonly db: DBService;
 
-  async getAll(): Promise<ServiceResult<VendorModel[]>> {
-    const vendors = await this.db.vendor.findMany({ include: { vendorItemPrices: true } });
-    return success(vendors);
+  constructor(db: DBService) {
+    this.db = db;
   }
 
-  async get(id: number): Promise<ServiceResult<VendorModel>> {
-    const vendor = await this.db.vendor.findFirst({ where: { id }, include: { vendorItemPrices: true } });
+  async getAll() {
+    return await this.db.vendor.findMany({ include: includeOptions });
+  }
+
+  async get(id: number) {
+    const vendor = await this.db.vendor.findFirst({ where: { id }, include: includeOptions });
 
     if (vendor == null) {
-      return error("", "Vendor does not exist");
+      throw new NotFound(name);
     }
 
-    return success(vendor);
+    return vendor;
   }
 
-  async create(data: VendorDto): Promise<ServiceResult<VendorModel>> {
+  async create(data: VendorCreateRequestData) {
     try {
-      const vendor = await this.db.vendor.create({ data, include: { vendorItemPrices: true } });
-      return success(vendor);
+      return await this.db.vendor.create({ data, include: includeOptions });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Vendor already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
 
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 
-  async update(id: number, data: VendorDto): Promise<ServiceResult<VendorModel>> {
+  async update(data: VendorUpdateRequestData) {
     try {
-      const vendor = await this.db.vendor.update({ where: { id }, data, include: { vendorItemPrices: true } });
-      return success(vendor);
+      return await this.db.vendor.update({ where: { id: data.id }, data, include: includeOptions });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Vendor not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Vendor already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
-      return error("", "Unexpected error");
+
+      throw new Error();
     }
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
+  async delete(data: VendorDeleteRequestData) {
     try {
-      await this.db.vendor.delete({ where: { id } });
-      return success(true);
+      await this.db.vendor.delete({ where: { id: data.id } });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Vendor not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
       }
-      return error("", "Unexpected error");
+
+      throw new Error();
     }
   }
 }

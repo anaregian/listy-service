@@ -1,84 +1,45 @@
+import { CategoryModel } from "@app/Category/categoryModel";
+import {
+  CategoryCreateRequestData,
+  CategoryDeleteRequestData,
+  CategoryResponseData,
+  CategoryShowRequestData,
+  CategoryUpdateRequestData
+} from "@app/Category/data";
+import { IRepository } from "@common/repository";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { inject, injectable } from "inversify";
-import { IRepository } from "../common/repository";
-import { IService } from "../common/service";
-import { ServiceResult, success } from "../common/serviceResult";
-import { IValidator } from "../common/validator";
-import { TYPES } from "../modules/types";
-import { CategoryDto } from "./categoryDto";
-import { CategoryModel } from "./categoryModel";
 
 @injectable()
-export class CategoryService implements IService<CategoryModel, CategoryDto> {
-  categoryRepository: IRepository<CategoryModel, CategoryDto>;
-  categoryValidator: IValidator<CategoryDto>;
+export class CategoryService implements IService<CategoryResponseData> {
+  categoryRepository: IRepository<CategoryModel>;
 
-  constructor(
-    @inject(TYPES.ICategoryRepository) categoryRepository: IRepository<CategoryModel, CategoryDto>,
-    @inject(TYPES.ICategoryValidator) categoryValidator: IValidator<CategoryDto>
-  ) {
+  constructor(@inject(TYPES.ICategoryRepository) categoryRepository: IRepository<CategoryModel>) {
     this.categoryRepository = categoryRepository;
-    this.categoryValidator = categoryValidator;
   }
 
-  async getAll(): Promise<ServiceResult<CategoryModel[]>> {
-    const result = await this.categoryRepository.getAll();
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async getAll() {
+    const categories = await this.categoryRepository.getAll();
+    return CategoryResponseData.fromMany(categories);
   }
 
-  async get(id: number): Promise<ServiceResult<CategoryModel>> {
-    const result = await this.categoryRepository.get(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async get(data: CategoryShowRequestData) {
+    const category = await this.categoryRepository.get(data.id);
+    return CategoryResponseData.from(category);
   }
 
-  async create(data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
-    const validationResult = this.categoryValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.categoryRepository.create(data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async create(data: CategoryCreateRequestData) {
+    const category = await this.categoryRepository.create(data);
+    return CategoryResponseData.from(category);
   }
 
-  async update(id: number, data: CategoryDto): Promise<ServiceResult<CategoryModel>> {
-    const validationResult = this.categoryValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.categoryRepository.update(id, data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async update(data: CategoryUpdateRequestData) {
+    const category = await this.categoryRepository.update(data);
+    return CategoryResponseData.from(category);
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
-    const result = await this.categoryRepository.delete(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async delete(data: CategoryDeleteRequestData) {
+    await this.categoryRepository.delete(data);
   }
 }

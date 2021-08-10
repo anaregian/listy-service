@@ -1,110 +1,94 @@
-import { Prisma } from "../../prisma/client";
+import { ItemCreateRequestData, ItemDeleteRequestData, ItemUpdateRequestData } from "@app/Item/data";
+import { ItemModel } from "@app/Item/itemModel";
+import { ConflictError, NotFound, PrismaErrorCodes } from "@common/exceptions";
+import { IRepository } from "@common/repository";
+import { DBService } from "@persistency/dbService";
+import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
-import { ErrorCodes } from "../common/errorCodes";
-import { error, ServiceResult, success } from "../common/serviceResult";
-import { IRepository } from "./../common/repository";
-import { DBService } from "./../persistency/dbService";
-import { ItemDto } from "./itemDto";
-import { ItemModel } from "./itemModel";
+
+const name = "Item";
+const includeOptions = {
+  category: true,
+  shoppingListItems: { include: { shoppingList: true } },
+  vendorItemPrices: { include: { vendor: true, unit: true } }
+};
 
 @injectable()
-export class ItemRepository implements IRepository<ItemModel, ItemDto> {
-  constructor(private readonly db: DBService) {}
+export class ItemRepository implements IRepository<ItemModel> {
+  private readonly db: DBService;
 
-  async getAll(): Promise<ServiceResult<ItemModel[]>> {
-    const items = await this.db.item.findMany({
-      include: { category: true, shoppingListItems: true, vendorItemPrices: true }
-    });
-    return success(items);
+  constructor(db: DBService) {
+    this.db = db;
   }
 
-  async get(id: number): Promise<ServiceResult<ItemModel>> {
-    const item = await this.db.item.findFirst({
-      where: { id },
-      include: { category: true, shoppingListItems: true, vendorItemPrices: true }
-    });
+  async getAll() {
+    return await this.db.item.findMany({ include: includeOptions });
+  }
+
+  async get(id: number) {
+    const item = await this.db.item.findFirst({ where: { id }, include: includeOptions });
 
     if (item == null) {
-      return error("", "Item does not exist");
+      throw new NotFound(name);
     }
 
-    return success(item);
+    return item;
   }
 
-  async create(data: ItemDto): Promise<ServiceResult<ItemModel>> {
+  async create(data: ItemCreateRequestData) {
     try {
-      const item = await this.db.item.create({
-        data: {
-          name: data.name,
-          ...(data.categoryId && {
-            category: {
-              connect: {
-                id: data.categoryId
-              }
-            }
-          })
-        },
-        include: { category: true, shoppingListItems: true, vendorItemPrices: true }
+      return await this.db.item.create({
+        data: { name: data.name, ...(data.categoryId && { category: { connect: { id: data.categoryId } } }) },
+        include: includeOptions
       });
-
-      return success(item);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Item already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
 
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 
-  async update(id: number, data: ItemDto): Promise<ServiceResult<ItemModel>> {
+  async update(data: ItemUpdateRequestData) {
     try {
-      const item = await this.db.item.update({
-        where: { id },
+      return await this.db.item.update({
+        where: { id: data.id },
         data: {
           name: data.name,
           category: {
-            ...(data.categoryId
-              ? {
-                  connect: {
-                    id: data.categoryId
-                  }
-                }
-              : {
-                  disconnect: true
-                })
+            ...(data.categoryId ? { connect: { id: data.categoryId } } : { disconnect: true })
           }
         },
-        include: { category: true, shoppingListItems: true, vendorItemPrices: true }
+        include: includeOptions
       });
-
-      return success(item);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Item not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("name", "Item already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
     }
-    return error("", "Unexpected error");
+
+    throw new Error();
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
+  async delete(data: ItemDeleteRequestData) {
     try {
-      await this.db.item.delete({ where: { id } });
-      return success(true);
+      await this.db.item.delete({ where: { id: data.id } });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Item not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
       }
-      return error("", "Unexpected error");
+
+      throw new Error();
     }
   }
 }

@@ -31,8 +31,7 @@ async function seed() {
   ];
 
   for (const unit of data) {
-    const asd = await db.unit.create({ data: unit });
-    console.log(asd);
+    await db.unit.create({ data: unit });
   }
 }
 

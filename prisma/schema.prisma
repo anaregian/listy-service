@@ -40,9 +40,9 @@ model ShoppingListItem {
   id             Int          @id @default(autoincrement())
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  note           String?      @db.VarChar(255)
+  note           String       @default("") @db.VarChar(255)
   bought         Boolean      @default(false) @db.TinyInt
-  quantity       String?      @db.VarChar(50)
+  quantity       Int          @default(0) @db.Int
   shoppingListId Int          @db.Int
   itemId         Int          @db.Int
   shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id])

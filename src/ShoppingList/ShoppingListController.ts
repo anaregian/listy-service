@@ -1,89 +1,61 @@
+import {
+  ShoppingListCreateRequestData,
+  ShoppingListDeleteRequestData,
+  ShoppingListShowRequestData,
+  ShoppingListUpdateRequestData
+} from "@app/ShoppingList/data";
+import { ShoppingListModel } from "@app/ShoppingList/shoppingListModel";
+import { HttpResponse } from "@common/httpResponse";
+import { ValidateRequestMiddleware } from "@common/middleware/ValidateRequest";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
-import { errorResponse, ResponseResult, successResponse } from "../common/responseResult";
-import { TYPES } from "../modules/types";
-import { IService } from "./../common/service";
-import { ShoppingListDto } from "./shoppingListDto";
-import { ShoppingListModel } from "./shoppingListModel";
 
 @controller("/api/shoppingLists")
 export class ShoppingListController {
-  shoppingListService: IService<ShoppingListModel, ShoppingListDto>;
+  shoppingListService: IService<ShoppingListModel>;
 
-  constructor(@inject(TYPES.IShoppingListService) shoppingListService: IService<ShoppingListModel, ShoppingListDto>) {
+  constructor(
+    @inject(TYPES.IShoppingListService)
+    shoppingListService: IService<ShoppingListModel>
+  ) {
     this.shoppingListService = shoppingListService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<ShoppingListModel[]>>) {
-    const result = await this.shoppingListService.getAll();
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  async index(_: Request, res: Response) {
+    const shoppingLists = await this.shoppingListService.getAll();
+    const response = HttpResponse.success(shoppingLists);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<ShoppingListModel>>) {
-    const id = parseInt(req.params.id);
-    const result = await this.shoppingListService.get(id);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpGet("/:id", ValidateRequestMiddleware.withParams(ShoppingListShowRequestData))
+  async show(req: Request, res: Response) {
+    const shoppingList = await this.shoppingListService.get(req.body);
+    const response = HttpResponse.success(shoppingList);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<ShoppingListModel>>) {
-    const data: ShoppingListDto = {
-      name: req.body.name
-    };
-
-    const result = await this.shoppingListService.create(data);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpPost("/", ValidateRequestMiddleware.with(ShoppingListCreateRequestData))
+  async create(req: Request, res: Response) {
+    const shoppingList = await this.shoppingListService.create(req.body);
+    const response = HttpResponse.success(shoppingList);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<ShoppingListModel>>) {
-    const id = parseInt(req.params.id);
-    const data: ShoppingListDto = {
-      name: req.body.name
-    };
-
-    const result = await this.shoppingListService.update(id, data);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpPut("/:id", ValidateRequestMiddleware.withParams(ShoppingListUpdateRequestData))
+  async update(req: Request, res: Response) {
+    const shoppingList = await this.shoppingListService.update(req.body);
+    const response = HttpResponse.success(shoppingList);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<boolean>>) {
-    const id = parseInt(req.params.id);
-
-    const result = await this.shoppingListService.delete(id);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(true));
+  @httpDelete("/:id", ValidateRequestMiddleware.withParams(ShoppingListDeleteRequestData))
+  async delete(req: Request, res: Response) {
+    const shoppingList = await this.shoppingListService.delete(req.body);
+    const response = HttpResponse.success(shoppingList, 204);
+    res.status(response.statusCode);
   }
 }

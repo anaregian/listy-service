@@ -1,5 +1,9 @@
-import { ShoppingList, ShoppingListItem } from "../../prisma/client";
+import { Category, Item, ShoppingList, ShoppingListItem } from "@prisma/client";
 
 export interface ShoppingListModel extends ShoppingList {
-  shoppingListItems: ShoppingListItem[];
+  shoppingListItems: (ShoppingListItem & {
+    item: Item & {
+      category: Category | null;
+    };
+  })[];
 }

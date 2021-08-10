@@ -1,91 +1,58 @@
+import {
+  ItemCreateRequestData,
+  ItemDeleteRequestData,
+  ItemShowRequestData,
+  ItemUpdateRequestData
+} from "@app/Item/data";
+import { ItemModel } from "@app/Item/itemModel";
+import { HttpResponse } from "@common/httpResponse";
+import { ValidateRequestMiddleware } from "@common/middleware/ValidateRequest";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
-import { errorResponse, ResponseResult, successResponse } from "../common/responseResult";
-import { IService } from "../common/service";
-import { TYPES } from "../modules/types";
-import { ItemDto } from "./itemDto";
-import { ItemModel } from "./itemModel";
 
 @controller("/api/items")
 export class ItemController {
-  itemService: IService<ItemModel, ItemDto>;
+  itemService: IService<ItemModel>;
 
-  constructor(@inject(TYPES.IItemService) itemService: IService<ItemModel, ItemDto>) {
+  constructor(@inject(TYPES.IItemService) itemService: IService<ItemModel>) {
     this.itemService = itemService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<ItemModel[]>>) {
-    const result = await this.itemService.getAll();
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  async index(_: Request, res: Response) {
+    const items = await this.itemService.getAll();
+    const response = HttpResponse.success(items);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<ItemModel>>) {
-    const id = parseInt(req.params.id);
-    const result = await this.itemService.get(id);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpGet("/:id", ValidateRequestMiddleware.withParams(ItemShowRequestData))
+  async show(req: Request, res: Response) {
+    const item = await this.itemService.get(req.body);
+    const response = HttpResponse.success(item);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<ItemModel>>) {
-    const data: ItemDto = {
-      name: req.body.name,
-      categoryId: req.body.categoryId
-    };
-
-    const result = await this.itemService.create(data);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpPost("/", ValidateRequestMiddleware.with(ItemCreateRequestData))
+  async create(req: Request, res: Response) {
+    const item = await this.itemService.create(req.body);
+    const response = HttpResponse.success(item);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<ItemModel>>) {
-    const id = parseInt(req.params.id);
-    const data: ItemDto = {
-      name: req.body.name,
-      categoryId: req.body.categoryId
-    };
-
-    const result = await this.itemService.update(id, data);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpPut("/:id", ValidateRequestMiddleware.withParams(ItemUpdateRequestData))
+  async update(req: Request, res: Response) {
+    const item = await this.itemService.update(req.body);
+    const response = HttpResponse.success(item);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<boolean>>) {
-    const id = parseInt(req.params.id);
-
-    const result = await this.itemService.delete(id);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpDelete("/:id", ValidateRequestMiddleware.withParams(ItemDeleteRequestData))
+  async delete(req: Request, res: Response) {
+    const item = await this.itemService.delete(req.body);
+    const response = HttpResponse.success(item, 204);
+    res.status(response.statusCode);
   }
 }

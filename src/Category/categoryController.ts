@@ -1,89 +1,58 @@
+import {
+  CategoryCreateRequestData,
+  CategoryDeleteRequestData,
+  CategoryResponseData,
+  CategoryShowRequestData,
+  CategoryUpdateRequestData
+} from "@app/Category/data";
+import { HttpResponse } from "@common/httpResponse";
+import { ValidateRequestMiddleware } from "@common/middleware/ValidateRequest";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { Request, Response } from "express";
 import { inject } from "inversify";
 import { controller, httpDelete, httpGet, httpPost, httpPut } from "inversify-express-utils";
-import { errorResponse, ResponseResult, successResponse } from "../common/responseResult";
-import { IService } from "../common/service";
-import { TYPES } from "../modules/types";
-import { CategoryDto } from "./categoryDto";
-import { CategoryModel } from "./categoryModel";
 
 @controller("/api/categories")
 export class CategoryController {
-  categoryService: IService<CategoryModel, CategoryDto>;
+  categoryService: IService<CategoryResponseData>;
 
-  constructor(@inject(TYPES.ICategoryService) categoryService: IService<CategoryModel, CategoryDto>) {
+  constructor(@inject(TYPES.ICategoryService) categoryService: IService<CategoryResponseData>) {
     this.categoryService = categoryService;
   }
 
   @httpGet("/")
-  async index(_: Request, res: Response<ResponseResult<CategoryModel[]>>) {
-    const result = await this.categoryService.getAll();
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  async index(_: Request, res: Response) {
+    const categories = await this.categoryService.getAll();
+    const response = HttpResponse.success(categories);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpGet("/:id")
-  async show(req: Request, res: Response<ResponseResult<CategoryModel>>) {
-    const id = parseInt(req.params.id);
-    const result = await this.categoryService.get(id);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpGet("/:id", ValidateRequestMiddleware.withParams(CategoryShowRequestData))
+  async show(req: Request, res: Response) {
+    const category = await this.categoryService.get(req.body);
+    const response = HttpResponse.success(category);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpPost("/")
-  async create(req: Request, res: Response<ResponseResult<CategoryModel>>) {
-    const data: CategoryDto = {
-      name: req.body.name
-    };
-
-    const result = await this.categoryService.create(data);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpPost("/", ValidateRequestMiddleware.with(CategoryCreateRequestData))
+  async create(req: Request, res: Response) {
+    const category = await this.categoryService.create(req.body);
+    const response = HttpResponse.success(category);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpPut("/:id")
-  async update(req: Request, res: Response<ResponseResult<CategoryModel>>) {
-    const id = parseInt(req.params.id);
-    const data: CategoryDto = {
-      name: req.body.name
-    };
-
-    const result = await this.categoryService.update(id, data);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpPut("/:id", ValidateRequestMiddleware.withParams(CategoryUpdateRequestData))
+  async update(req: Request, res: Response) {
+    const category = await this.categoryService.update(req.body);
+    const response = HttpResponse.success(category);
+    res.status(response.statusCode).json(response);
   }
 
-  @httpDelete("/:id")
-  async delete(req: Request, res: Response<ResponseResult<boolean>>) {
-    const id = parseInt(req.params.id);
-
-    const result = await this.categoryService.delete(id);
-
-    if (!result.success) {
-      res.status(400);
-      return res.json(errorResponse(result));
-    }
-
-    return res.json(successResponse(result.data));
+  @httpDelete("/:id", ValidateRequestMiddleware.withParams(CategoryDeleteRequestData))
+  async delete(req: Request, res: Response) {
+    const category = await this.categoryService.delete(req.body);
+    const response = HttpResponse.success(category, 204);
+    res.status(response.statusCode);
   }
 }

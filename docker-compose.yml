@@ -11,6 +11,18 @@ services:
       - listy-data:/var/lib/mysql
     ports:
       - "3306:3306"
+
+  service:
+    image: listy-service
+    environment:
+      PORT: ${PORT}
+      APP_URL: ${APP_URL}
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+
 volumes:
   listy-data:
     driver: local

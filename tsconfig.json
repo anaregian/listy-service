@@ -22,8 +22,14 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "baseUrl": "./",
-    "paths": {},
+    "baseUrl": ".",
+    "paths": {
+      "@prisma/*": ["prisma/*"],
+      "@app/*": ["src/*"],
+      "@modules/*": ["src/modules/*"],
+      "@common/*": ["src/common/*"],
+      "@persistency/*": ["src/persistency/*"]
+    },
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "preserveSymlinks": true,

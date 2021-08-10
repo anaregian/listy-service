@@ -1,162 +1,94 @@
-import { Prisma } from "../../prisma/client";
+import {
+  VendorItemPriceCreateRequestData,
+  VendorItemPriceDeleteRequestData,
+  VendorItemPriceUpdateRequestData
+} from "@app/VendorItemPrice/data";
+import { IAssociationRepository } from "@common/associationRepository";
+import { ConflictError, NotFound, PrismaErrorCodes } from "@common/exceptions";
+import { DBService } from "@persistency/dbService";
+import { Prisma } from "@prisma/client";
 import { injectable } from "inversify";
-import { IAssociationRepository } from "../common/associationRepository";
-import { error, ServiceResult, success } from "../common/serviceResult";
-import { ErrorCodes } from "./../common/errorCodes";
-import { DBService } from "./../persistency/dbService";
-import { VendorItemPriceDto } from "./vendorItemPriceDto";
-import { VendorItemPriceModel } from "./vendorItemPriceModel";
+
+const name = "Vendor Item Price";
 
 @injectable()
-export class VendorItemPriceRepository implements IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto> {
-  constructor(private readonly db: DBService) {}
+export class VendorItemPriceRepository implements IAssociationRepository {
+  private readonly db: DBService;
 
-  async getAll(itemId: number): Promise<ServiceResult<VendorItemPriceModel[]>> {
-    const vendorItemPrices = await this.db.vendorItemPrice.findMany({
-      where: { itemId },
-      include: { vendor: true, item: true, unit: true }
-    });
-    return success(vendorItemPrices);
+  constructor(db: DBService) {
+    this.db = db;
   }
 
-  async get(itemId: number, vendorId: number): Promise<ServiceResult<VendorItemPriceModel>> {
-    const vendorItemPrice = await this.db.vendorItemPrice.findFirst({
-      where: { itemId, vendorId },
-      include: { vendor: true, item: true, unit: true }
-    });
-
-    if (vendorItemPrice == null) {
-      return error("", "Vendor item price does not exist");
-    }
-
-    return success(vendorItemPrice);
-  }
-
-  async create(
-    itemId: number,
-    vendorId: number | null,
-    data: VendorItemPriceDto
-  ): Promise<ServiceResult<VendorItemPriceModel>> {
+  async create(data: VendorItemPriceCreateRequestData) {
     try {
-      const vendorItemPrice = await this.db.vendorItemPrice.create({
+      await this.db.vendorItemPrice.create({
         data: {
           regularPrice: data.regularPrice,
           reducedPrice: data.reducedPrice,
-          unit: {
-            connect: {
-              id: data.unitId
-            }
-          },
-          item: {
-            connect: {
-              id: itemId
-            }
-          },
+          unit: { connect: { id: data.unitId } },
+          item: { connect: { id: data.itemId } },
           vendor: {
-            ...(vendorId
-              ? {
-                  connect: {
-                    id: vendorId
-                  }
-                }
-              : {
-                  create: {
-                    name: data.vendorName!
-                  }
-                })
+            ...(data.vendor.id ? { connect: { id: data.vendor.id } } : { create: { name: data.vendor.name! } })
           }
-        },
-        include: { vendor: true, item: true, unit: true }
+        }
       });
-      return success(vendorItemPrice);
     } catch (e) {
-      console.log(e);
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("", "Vendor item price already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
 
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 
-  async update(
-    itemId: number,
-    vendorId: number,
-    data: VendorItemPriceDto
-  ): Promise<ServiceResult<VendorItemPriceModel>> {
+  async update(data: VendorItemPriceUpdateRequestData) {
     try {
-      const vendorItemPrice = await this.db.vendorItemPrice.update({
-        where: { itemId_vendorId: { itemId, vendorId } },
+      await this.db.vendorItemPrice.update({
+        where: { id: data.id },
         data: {
           regularPrice: data.regularPrice,
           reducedPrice: data.reducedPrice,
-          unit: {
-            connect: {
-              id: data.unitId
-            }
-          },
-          ...(itemId && {
-            item: {
-              connect: {
-                id: itemId
-              }
-            }
-          }),
-          ...(vendorId && {
-            vendor: {
-              connect: {
-                id: vendorId
-              }
-            }
-          })
-        },
-        include: { vendor: true, item: true, unit: true }
+          unit: { connect: { id: data.unitId } }
+        }
       });
-      return success(vendorItemPrice);
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Vendor item price not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
-        if (e.code === ErrorCodes.UniqueConstraintViolation) {
-          return error("", "Vendor item price already exists");
+        if (e.code === PrismaErrorCodes.UniqueConstraintViolation) {
+          throw new ConflictError(name);
         }
       }
+      throw new Error();
     }
-    return error("", "Unexpected error");
   }
 
-  async delete(itemId: number | null, vendorId: number | null): Promise<ServiceResult<boolean>> {
+  async delete(data: VendorItemPriceDeleteRequestData) {
     try {
-      if (!itemId && vendorId) {
-        await this.db.vendorItemPrice.deleteMany({ where: { vendorId } });
-
-        return success(true);
+      if (data.id) {
+        await this.db.vendorItemPrice.delete({ where: { id: data.id } });
+        return;
       }
 
-      if (itemId && !vendorId) {
-        await this.db.vendorItemPrice.deleteMany({ where: { itemId } });
-
-        return success(true);
+      if (data.vendorId) {
+        await this.db.vendorItemPrice.deleteMany({ where: { vendorId: data.vendorId } });
+        return;
       }
 
-      if (itemId && vendorId) {
-        await this.db.vendorItemPrice.delete({
-          where: { itemId_vendorId: { itemId, vendorId } }
-        });
-        return success(true);
+      if (data.itemId) {
+        await this.db.vendorItemPrice.deleteMany({ where: { itemId: data.itemId } });
+        return;
       }
-
-      return error("", "both ids are null");
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === ErrorCodes.RecordNotFound) {
-          return error("", "Vendor item price not found");
+        if (e.code === PrismaErrorCodes.RecordNotFound) {
+          throw new NotFound(name);
         }
       }
-      return error("", "Unexpected error");
+      throw new Error();
     }
   }
 }

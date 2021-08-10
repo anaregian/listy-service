@@ -1,97 +1,53 @@
+import {
+  VendorCreateRequestData,
+  VendorDeleteRequestData,
+  VendorResponseData,
+  VendorShowRequestData,
+  VendorUpdateRequestData
+} from "@app/Vendor/data";
+import { VendorModel } from "@app/Vendor/vendorModel";
+import { IAssociationRepository } from "@common/associationRepository";
+import { IRepository } from "@common/repository";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { inject, injectable } from "inversify";
-import { IAssociationRepository } from "../common/associationRepository";
-import { IRepository } from "../common/repository";
-import { IService } from "../common/service";
-import { ServiceResult, success } from "../common/serviceResult";
-import { IValidator } from "../common/validator";
-import { TYPES } from "../modules/types";
-import { VendorItemPriceDto } from "../VendorItemPrice/vendorItemPriceDto";
-import { VendorItemPriceModel } from "../VendorItemPrice/vendorItemPriceModel";
-import { VendorDto } from "./vendorDto";
-import { VendorModel } from "./vendorModel";
 
 @injectable()
-export class VendorService implements IService<VendorModel, VendorDto> {
-  vendorRepository: IRepository<VendorModel, VendorDto>;
-  vendorItemPriceRepository: IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto>;
-  vendorValidator: IValidator<VendorDto>;
+export class VendorService implements IService<VendorResponseData> {
+  vendorRepository: IRepository<VendorModel>;
+  vendorItemPriceRepository: IAssociationRepository;
 
   constructor(
-    @inject(TYPES.IVendorRepository) vendorRepository: IRepository<VendorModel, VendorDto>,
+    @inject(TYPES.IVendorRepository) vendorRepository: IRepository<VendorModel>,
     @inject(TYPES.IVendorItemPriceRepository)
-    vendorItemPriceRepository: IAssociationRepository<VendorItemPriceModel, VendorItemPriceDto>,
-    @inject(TYPES.IVendorValidator) vendorValidator: IValidator<VendorDto>
+    vendorItemPriceRepository: IAssociationRepository
   ) {
     this.vendorRepository = vendorRepository;
     this.vendorItemPriceRepository = vendorItemPriceRepository;
-    this.vendorValidator = vendorValidator;
   }
 
-  async getAll(): Promise<ServiceResult<VendorModel[]>> {
-    const result = await this.vendorRepository.getAll();
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async getAll() {
+    const vendors = await this.vendorRepository.getAll();
+    return VendorResponseData.fromMany(vendors);
   }
 
-  async get(id: number): Promise<ServiceResult<VendorModel>> {
-    const result = await this.vendorRepository.get(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async get(data: VendorShowRequestData) {
+    const vendor = await this.vendorRepository.get(data.id);
+    return VendorResponseData.from(vendor);
   }
 
-  async create(data: VendorDto): Promise<ServiceResult<VendorModel>> {
-    const validationResult = this.vendorValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.vendorRepository.create(data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async create(data: VendorCreateRequestData) {
+    const vendor = await this.vendorRepository.create(data);
+    return VendorResponseData.from(vendor);
   }
 
-  async update(id: number, data: VendorDto): Promise<ServiceResult<VendorModel>> {
-    const validationResult = this.vendorValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.vendorRepository.update(id, data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async update(data: VendorUpdateRequestData) {
+    const vendor = await this.vendorRepository.update(data);
+    return VendorResponseData.from(vendor);
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
-    const vendorItemAssociationResult = await this.vendorItemPriceRepository.delete(null, id);
-
-    if (!vendorItemAssociationResult.success) {
-      return vendorItemAssociationResult;
-    }
-
-    const result = await this.vendorRepository.delete(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async delete(data: VendorDeleteRequestData) {
+    await this.vendorItemPriceRepository.delete({ vendorId: data.id });
+    await this.vendorRepository.delete(data);
   }
 }

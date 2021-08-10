@@ -1,12 +1,12 @@
+import { categoryModules } from "@app/Category/categoryModules";
+import { itemModules } from "@app/Item/itemModules";
+import { shoppingListModules } from "@app/ShoppingList/shoppingListModules";
+import { shoppingListItemModules } from "@app/ShoppingListItem/shoppingListItemModules";
+import { unitModules } from "@app/Unit/unitModules";
+import { vendorModules } from "@app/Vendor/vendorModules";
+import { vendorItemPriceModules } from "@app/VendorItemPrice/vendorItemPriceModules";
+import { DBService } from "@persistency/dbService";
 import { Container } from "inversify";
-import { itemModules } from "../Item/itemModules";
-import { DBService } from "../persistency/dbService";
-import { shoppingListModules } from "../ShoppingList/shoppingListModules";
-import { vendorModules } from "../Vendor/vendorModules";
-import { vendorItemPriceModules } from "../VendorItemPrice/vendorItemPriceModules";
-import { categoryModules } from "./../Category/categoryModules";
-import { shoppingListItemModules } from "./../ShoppingListItem/shoppingListItemModules";
-import { unitModules } from "./../Unit/unitModules";
 
 export const container = new Container();
 

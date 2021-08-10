@@ -1,5 +1,8 @@
-import { Vendor, VendorItemPrice } from "../../prisma/client";
+import { Item, Unit, Vendor, VendorItemPrice } from "@prisma/client";
 
 export interface VendorModel extends Vendor {
-  vendorItemPrices: VendorItemPrice[];
+  vendorItemPrices: (VendorItemPrice & {
+    unit: Unit;
+    item: Item;
+  })[];
 }

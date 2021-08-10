@@ -1,97 +1,53 @@
+import {
+  ShoppingListCreateRequestData,
+  ShoppingListDeleteRequestData,
+  ShoppingListResponseData,
+  ShoppingListShowRequestData,
+  ShoppingListUpdateRequestData
+} from "@app/ShoppingList/data";
+import { ShoppingListModel } from "@app/ShoppingList/shoppingListModel";
+import { IAssociationRepository } from "@common/associationRepository";
+import { IRepository } from "@common/repository";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { inject, injectable } from "inversify";
-import { ServiceResult, success } from "../common/serviceResult";
-import { IValidator } from "../common/validator";
-import { TYPES } from "../modules/types";
-import { ShoppingListItemDto } from "../ShoppingListItem/shoppingListItemDto";
-import { ShoppingListItemModel } from "../ShoppingListItem/shoppingListItemModel";
-import { IAssociationRepository } from "./../common/associationRepository";
-import { IRepository } from "./../common/repository";
-import { IService } from "./../common/service";
-import { ShoppingListDto } from "./shoppingListDto";
-import { ShoppingListModel } from "./shoppingListModel";
 
 @injectable()
-export class ShoppingListService implements IService<ShoppingListModel, ShoppingListDto> {
-  shoppingListRepository: IRepository<ShoppingListModel, ShoppingListDto>;
-  shoppingListItemRepository: IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto>;
-  shoppingListValidator: IValidator<ShoppingListDto>;
+export class ShoppingListService implements IService<ShoppingListResponseData> {
+  shoppingListRepository: IRepository<ShoppingListModel>;
+  shoppingListItemRepository: IAssociationRepository;
 
   constructor(
-    @inject(TYPES.IShoppingListRepository) shoppingListRepository: IRepository<ShoppingListModel, ShoppingListDto>,
+    @inject(TYPES.IShoppingListRepository) shoppingListRepository: IRepository<ShoppingListModel>,
     @inject(TYPES.IShoppingListItemRepository)
-    shoppingListItemRepository: IAssociationRepository<ShoppingListItemModel, ShoppingListItemDto>,
-    @inject(TYPES.IShoppingListValidator) shoppingListValidator: IValidator<ShoppingListDto>
+    shoppingListItemRepository: IAssociationRepository
   ) {
     this.shoppingListRepository = shoppingListRepository;
     this.shoppingListItemRepository = shoppingListItemRepository;
-    this.shoppingListValidator = shoppingListValidator;
   }
 
-  async getAll(): Promise<ServiceResult<ShoppingListModel[]>> {
-    const result = await this.shoppingListRepository.getAll();
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async getAll() {
+    const shoppingLists = await this.shoppingListRepository.getAll();
+    return ShoppingListResponseData.fromMany(shoppingLists);
   }
 
-  async get(id: number): Promise<ServiceResult<ShoppingListModel>> {
-    const result = await this.shoppingListRepository.get(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async get(data: ShoppingListShowRequestData) {
+    const shoppingList = await this.shoppingListRepository.get(data.id);
+    return ShoppingListResponseData.from(shoppingList);
   }
 
-  async create(data: ShoppingListDto): Promise<ServiceResult<ShoppingListModel>> {
-    const validationResult = this.shoppingListValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.shoppingListRepository.create(data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async create(data: ShoppingListCreateRequestData) {
+    const shoppingList = await this.shoppingListRepository.create(data);
+    return ShoppingListResponseData.from(shoppingList);
   }
 
-  async update(id: number, data: ShoppingListDto): Promise<ServiceResult<ShoppingListModel>> {
-    const validationResult = this.shoppingListValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.shoppingListRepository.update(id, data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async update(data: ShoppingListUpdateRequestData) {
+    const shoppingList = await this.shoppingListRepository.update(data);
+    return ShoppingListResponseData.from(shoppingList);
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
-    const associationResult = await this.shoppingListItemRepository.delete(id, null);
-
-    if (!associationResult.success) {
-      return associationResult;
-    }
-
-    const result = await this.shoppingListRepository.delete(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(true);
+  async delete(data: ShoppingListDeleteRequestData) {
+    await this.shoppingListItemRepository.delete({ shoppingListId: data.id });
+    await this.shoppingListRepository.delete(data);
   }
 }

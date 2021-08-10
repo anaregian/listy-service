@@ -1,84 +1,45 @@
+import {
+  UnitCreateRequestData,
+  UnitDeleteRequestData,
+  UnitResponseData,
+  UnitShowRequestData,
+  UnitUpdateRequestData
+} from "@app/Unit/data";
+import { UnitModel } from "@app/Unit/unitModel";
+import { IRepository } from "@common/repository";
+import { IService } from "@common/service";
+import { TYPES } from "@modules/types";
 import { inject, injectable } from "inversify";
-import { IRepository } from "../common/repository";
-import { IService } from "../common/service";
-import { ServiceResult, success } from "../common/serviceResult";
-import { IValidator } from "../common/validator";
-import { TYPES } from "../modules/types";
-import { UnitDto } from "./unitDto";
-import { UnitModel } from "./unitModel";
 
 @injectable()
-export class UnitService implements IService<UnitModel, UnitDto> {
-  unitRepository: IRepository<UnitModel, UnitDto>;
-  unitValidator: IValidator<UnitDto>;
+export class UnitService implements IService<UnitResponseData> {
+  unitRepository: IRepository<UnitModel>;
 
-  constructor(
-    @inject(TYPES.IUnitRepository) unitRepository: IRepository<UnitModel, UnitDto>,
-    @inject(TYPES.IUnitValidator) unitValidator: IValidator<UnitDto>
-  ) {
+  constructor(@inject(TYPES.IUnitRepository) unitRepository: IRepository<UnitModel>) {
     this.unitRepository = unitRepository;
-    this.unitValidator = unitValidator;
   }
 
-  async getAll(): Promise<ServiceResult<UnitModel[]>> {
-    const result = await this.unitRepository.getAll();
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async getAll() {
+    const units = await this.unitRepository.getAll();
+    return UnitResponseData.fromMany(units);
   }
 
-  async get(id: number): Promise<ServiceResult<UnitModel>> {
-    const result = await this.unitRepository.get(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async get(data: UnitShowRequestData) {
+    const unit = await this.unitRepository.get(data.id);
+    return UnitResponseData.from(unit);
   }
 
-  async create(data: UnitDto): Promise<ServiceResult<UnitModel>> {
-    const validationResult = this.unitValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.unitRepository.create(data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async create(data: UnitCreateRequestData) {
+    const unit = await this.unitRepository.create(data);
+    return UnitResponseData.from(unit);
   }
 
-  async update(id: number, data: UnitDto): Promise<ServiceResult<UnitModel>> {
-    const validationResult = this.unitValidator.validate(data);
-
-    if (!validationResult.success) {
-      return validationResult;
-    }
-
-    const result = await this.unitRepository.update(id, data);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async update(data: UnitUpdateRequestData) {
+    const unit = await this.unitRepository.update(data);
+    return UnitResponseData.from(unit);
   }
 
-  async delete(id: number): Promise<ServiceResult<boolean>> {
-    const result = await this.unitRepository.delete(id);
-
-    if (!result.success) {
-      return result;
-    }
-
-    return success(result.data);
+  async delete(data: UnitDeleteRequestData) {
+    await this.unitRepository.delete(data);
   }
 }
